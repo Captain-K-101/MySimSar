@@ -38,10 +38,15 @@ model Agency {
   bannerUrl           String?
   bio                 String?
   reraLicenseNumber   String?
+  reraLicenseUrl      String?  // URL to RERA license document
+  tradeLicenseUrl     String?  // URL to trade license document
+  officeAddress       String?
+  officePhotosUrl     String?  // JSON array of office photo URLs
   website             String?
   email               String?
   phone               String?
   verificationStatus  String   @default("PENDING") // PENDING, VERIFIED, REJECTED
+  verificationNotes   String?  // Admin notes for rejection
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
@@ -99,14 +104,21 @@ model Simsar {
   previousCompanyName         String?  // Stored when broker joins an agency
   bio                         String?
   reraId                      String?
+  reraCertificateUrl          String?  // URL to RERA certificate document
   licenseNumber               String?
-  licenseDocUrl               String?
+  licenseDocUrl               String?  // URL to license document
+  emiratesId                  String?  // Emirates ID number
+  emiratesIdUrl               String?  // URL to Emirates ID document
   experienceYears             Int?
+  specialties                 String   @default("[]") // JSON array: ["Off-plan", "Luxury", "Commercial", etc.]
+  areasOfOperation            String   @default("[]") // JSON array: ["Dubai Marina", "JVC", etc.]
   languages                   String   @default("[]") // JSON array stored as string
   whatsappNumber              String?
+  profileComplete             Boolean  @default(false) // True when all required fields are filled
   profileCompletenessScore    Int      @default(0)
   verificationStatus          String   @default("PENDING") // PENDING, UNDER_REVIEW, VERIFIED, REJECTED, NEED_MORE_DOCS
   verificationScore           Float?   @default(0)
+  verificationNotes           String?  // Admin notes for rejection/need more docs
   tierHint                    String?
   simsarType                  String   @default("INDIVIDUAL") // INDIVIDUAL, AGENCY_BROKER
   agencyId                    String?

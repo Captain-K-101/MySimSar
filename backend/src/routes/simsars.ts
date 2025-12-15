@@ -147,11 +147,74 @@ const updateProfileSchema = z.object({
   companyName: z.string().optional(),
   bio: z.string().optional(),
   reraId: z.string().optional(),
+  reraCertificateUrl: z.string().url().optional().or(z.literal("")),
   licenseNumber: z.string().optional(),
+  licenseDocUrl: z.string().url().optional().or(z.literal("")),
+  emiratesId: z.string().optional(),
+  emiratesIdUrl: z.string().url().optional().or(z.literal("")),
   experienceYears: z.number().optional(),
+  specialties: z.array(z.string()).optional(),
+  areasOfOperation: z.array(z.string()).optional(),
   languages: z.array(z.string()).optional(),
   whatsappNumber: z.string().optional(),
 });
+
+// Helper function to calculate profile completeness
+function calculateProfileCompleteness(simsar: any): { score: number; complete: boolean; missing: string[] } {
+  const requiredFields = [
+    { field: 'name', label: 'Full Name' },
+    { field: 'photoUrl', label: 'Profile Photo' },
+    { field: 'reraId', label: 'RERA ID' },
+    { field: 'reraCertificateUrl', label: 'RERA Certificate' },
+    { field: 'licenseNumber', label: 'License Number' },
+    { field: 'licenseDocUrl', label: 'License Document' },
+    { field: 'experienceYears', label: 'Experience Years' },
+    { field: 'whatsappNumber', label: 'WhatsApp Number' },
+  ];
+  
+  const optionalFields = [
+    { field: 'bio', label: 'Bio' },
+    { field: 'emiratesId', label: 'Emirates ID' },
+    { field: 'emiratesIdUrl', label: 'Emirates ID Document' },
+    { field: 'specialties', label: 'Specialties', isArray: true },
+    { field: 'areasOfOperation', label: 'Areas of Operation', isArray: true },
+    { field: 'languages', label: 'Languages', isArray: true },
+  ];
+  
+  const missing: string[] = [];
+  let requiredFilled = 0;
+  let optionalFilled = 0;
+  
+  for (const { field, label, isArray } of requiredFields as any[]) {
+    const value = simsar[field];
+    if (isArray) {
+      const arr = JSON.parse(value || '[]');
+      if (arr.length > 0) requiredFilled++;
+      else missing.push(label);
+    } else if (value && value !== '') {
+      requiredFilled++;
+    } else {
+      missing.push(label);
+    }
+  }
+  
+  for (const { field, label, isArray } of optionalFields as any[]) {
+    const value = simsar[field];
+    if (isArray) {
+      const arr = JSON.parse(value || '[]');
+      if (arr.length > 0) optionalFilled++;
+    } else if (value && value !== '') {
+      optionalFilled++;
+    }
+  }
+  
+  const requiredScore = (requiredFilled / requiredFields.length) * 70;
+  const optionalScore = (optionalFilled / optionalFields.length) * 30;
+  const score = Math.round(requiredScore + optionalScore);
+  const complete = missing.length === 0;
+  
+  return { score, complete, missing };
+}
 
 // Update own profile (broker only)
 router.put("/:id", requireAuth(["BROKER"]), async (req, res) => {
@@ -168,17 +231,49 @@ router.put("/:id", requireAuth(["BROKER"]), async (req, res) => {
     return res.status(403).json({ error: "Forbidden" });
   }
 
-  const { languages, photoUrl, ...rest } = parse.data;
-  const updated = await prisma.simsar.update({
+  const { 
+    languages, 
+    specialties, 
+    areasOfOperation, 
+    photoUrl, 
+    reraCertificateUrl,
+    licenseDocUrl,
+    emiratesIdUrl,
+    ...rest 
+  } = parse.data;
+  
+  // First update with provided fields
+  let updated = await prisma.simsar.update({
     where: { id: simsar.id },
     data: {
       ...rest,
       ...(photoUrl !== undefined ? { photoUrl: photoUrl || null } : {}),
+      ...(reraCertificateUrl !== undefined ? { reraCertificateUrl: reraCertificateUrl || null } : {}),
+      ...(licenseDocUrl !== undefined ? { licenseDocUrl: licenseDocUrl || null } : {}),
+      ...(emiratesIdUrl !== undefined ? { emiratesIdUrl: emiratesIdUrl || null } : {}),
       ...(languages ? { languages: JSON.stringify(languages) } : {}),
+      ...(specialties ? { specialties: JSON.stringify(specialties) } : {}),
+      ...(areasOfOperation ? { areasOfOperation: JSON.stringify(areasOfOperation) } : {}),
+    },
+  });
+  
+  // Calculate profile completeness and update
+  const completeness = calculateProfileCompleteness(updated);
+  updated = await prisma.simsar.update({
+    where: { id: simsar.id },
+    data: {
+      profileCompletenessScore: completeness.score,
+      profileComplete: completeness.complete,
     },
   });
 
-  return res.json(updated);
+  return res.json({
+    ...updated,
+    languages: JSON.parse(updated.languages || "[]"),
+    specialties: JSON.parse(updated.specialties || "[]"),
+    areasOfOperation: JSON.parse(updated.areasOfOperation || "[]"),
+    completeness,
+  });
 });
 
 // Get my simsar profile (broker)
@@ -193,6 +288,10 @@ router.get("/me/profile", requireAuth(["BROKER"]), async (req, res) => {
       agency: {
         select: { id: true, name: true, logoUrl: true },
       },
+      verificationRequests: {
+        orderBy: { submittedAt: "desc" },
+        take: 1,
+      },
     },
   });
 
@@ -204,11 +303,38 @@ router.get("/me/profile", requireAuth(["BROKER"]), async (req, res) => {
     ? simsar.reviews.reduce((sum, r) => sum + r.rating, 0) / simsar.reviews.length 
     : 0;
 
+  const completeness = calculateProfileCompleteness(simsar);
+  const latestVerificationRequest = simsar.verificationRequests[0] || null;
+
   return res.json({
     ...simsar,
     languages: JSON.parse(simsar.languages || "[]"),
+    specialties: JSON.parse(simsar.specialties || "[]"),
+    areasOfOperation: JSON.parse(simsar.areasOfOperation || "[]"),
     rating: Math.round(avgRating * 10) / 10,
     reviewCount: simsar.reviews.length,
+    completeness,
+    latestVerificationRequest,
+  });
+});
+
+// Get profile completeness status
+router.get("/me/completeness", requireAuth(["BROKER"]), async (req, res) => {
+  const simsar = await prisma.simsar.findUnique({
+    where: { userId: req.user!.userId },
+  });
+
+  if (!simsar) {
+    return res.status(404).json({ error: "Profile not found" });
+  }
+
+  const completeness = calculateProfileCompleteness(simsar);
+  
+  return res.json({
+    ...completeness,
+    verificationStatus: simsar.verificationStatus,
+    verificationNotes: simsar.verificationNotes,
+    canSubmitVerification: completeness.complete && simsar.verificationStatus !== "UNDER_REVIEW",
   });
 });
 
@@ -334,7 +460,22 @@ router.delete("/me/requests/:requestId", requireAuth(["BROKER"]), async (req, re
 /* ─── VERIFICATION ────────────────────────────────────────── */
 
 const verificationSchema = z.object({
-  documents: z.record(z.string(), z.string()),
+  // Profile fields to update
+  name: z.string().min(1),
+  photoUrl: z.string().url(),
+  reraId: z.string().min(1),
+  reraCertificateUrl: z.string().url(),
+  licenseNumber: z.string().min(1),
+  licenseDocUrl: z.string().url(),
+  experienceYears: z.number().min(0),
+  whatsappNumber: z.string().min(1),
+  // Optional fields
+  bio: z.string().optional(),
+  emiratesId: z.string().optional(),
+  emiratesIdUrl: z.string().url().optional().or(z.literal("")),
+  specialties: z.array(z.string()).optional(),
+  areasOfOperation: z.array(z.string()).optional(),
+  languages: z.array(z.string()).optional(),
 });
 
 // Submit verification request (broker only)
@@ -352,20 +493,88 @@ router.post("/:id/verification", requireAuth(["BROKER"]), async (req, res) => {
     return res.status(403).json({ error: "Forbidden" });
   }
 
+  // Check if there's already a pending verification request
+  if (simsar.verificationStatus === "UNDER_REVIEW") {
+    return res.status(400).json({ error: "You already have a pending verification request" });
+  }
+
+  const { specialties, areasOfOperation, languages, emiratesIdUrl, ...profileData } = parse.data;
+
+  // Update profile with verification data
+  const updatedSimsar = await prisma.simsar.update({
+    where: { id: simsar.id },
+    data: {
+      ...profileData,
+      emiratesIdUrl: emiratesIdUrl || null,
+      ...(specialties ? { specialties: JSON.stringify(specialties) } : {}),
+      ...(areasOfOperation ? { areasOfOperation: JSON.stringify(areasOfOperation) } : {}),
+      ...(languages ? { languages: JSON.stringify(languages) } : {}),
+      profileComplete: true,
+      profileCompletenessScore: 100,
+    },
+  });
+
+  // Create documents object for admin review
+  const documents = {
+    reraCertificateUrl: parse.data.reraCertificateUrl,
+    licenseDocUrl: parse.data.licenseDocUrl,
+    ...(parse.data.emiratesIdUrl ? { emiratesIdUrl: parse.data.emiratesIdUrl } : {}),
+    photoUrl: parse.data.photoUrl,
+  };
+
+  // Create verification request
   const verificationRequest = await prisma.verificationRequest.create({
     data: {
       simsarId: simsar.id,
-      documents: JSON.stringify(parse.data.documents),
+      documents: JSON.stringify(documents),
       status: "PENDING",
     },
   });
 
+  // Update simsar verification status
   await prisma.simsar.update({
     where: { id: simsar.id },
-    data: { verificationStatus: "UNDER_REVIEW" },
+    data: { 
+      verificationStatus: "UNDER_REVIEW",
+      verificationNotes: null,
+    },
   });
 
-  return res.status(201).json(verificationRequest);
+  return res.status(201).json({
+    verificationRequest,
+    message: "Verification request submitted successfully. Our team will review your documents within 24-48 hours.",
+  });
+});
+
+// Get verification status and history
+router.get("/:id/verification-status", requireAuth(["BROKER"]), async (req, res) => {
+  const simsar = await prisma.simsar.findUnique({ 
+    where: { id: req.params.id },
+    include: {
+      verificationRequests: {
+        orderBy: { submittedAt: "desc" },
+      },
+    },
+  });
+  
+  if (!simsar) {
+    return res.status(404).json({ error: "Simsar not found" });
+  }
+  if (simsar.userId !== req.user!.userId) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+
+  return res.json({
+    status: simsar.verificationStatus,
+    notes: simsar.verificationNotes,
+    history: simsar.verificationRequests.map((r) => ({
+      id: r.id,
+      status: r.status,
+      submittedAt: r.submittedAt,
+      decidedAt: r.decidedAt,
+      adminNotes: r.adminNotes,
+    })),
+  });
 });
 
 /* ─── TRANSACTION CLAIMS ──────────────────────────────────── */

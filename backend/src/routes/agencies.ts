@@ -208,11 +208,16 @@ const updateAgencySchema = z.object({
   name: z.string().min(2).optional(),
   bio: z.string().optional(),
   reraLicenseNumber: z.string().optional(),
+  reraLicenseUrl: z.string().url().optional().or(z.literal("")),
+  tradeLicenseUrl: z.string().url().optional().or(z.literal("")),
+  officeAddress: z.string().optional(),
+  officePhotosUrl: z.string().optional(),
   website: z.string().url().optional().or(z.literal("")),
   email: z.string().email().optional().or(z.literal("")),
   phone: z.string().optional(),
   logoUrl: z.string().url().optional().or(z.literal("")),
   bannerUrl: z.string().url().optional().or(z.literal("")),
+  verificationStatus: z.enum(["PENDING", "UNDER_REVIEW", "VERIFIED", "REJECTED"]).optional(),
 });
 
 // Update agency (owner only)
@@ -232,6 +237,11 @@ router.put("/:id", requireAuth(["BROKER"]), async (req, res) => {
     return res.status(403).json({ error: "Not authorized to update this agency" });
   }
 
+  // Only allow changing verification status to UNDER_REVIEW (not directly to VERIFIED)
+  if (parse.data.verificationStatus && parse.data.verificationStatus !== "UNDER_REVIEW") {
+    delete parse.data.verificationStatus;
+  }
+
   const updated = await prisma.agency.update({
     where: { id: agency.id },
     data: {
@@ -240,6 +250,9 @@ router.put("/:id", requireAuth(["BROKER"]), async (req, res) => {
       bannerUrl: parse.data.bannerUrl || null,
       website: parse.data.website || null,
       email: parse.data.email || null,
+      reraLicenseUrl: parse.data.reraLicenseUrl || null,
+      tradeLicenseUrl: parse.data.tradeLicenseUrl || null,
+      officeAddress: parse.data.officeAddress || null,
     },
   });
 

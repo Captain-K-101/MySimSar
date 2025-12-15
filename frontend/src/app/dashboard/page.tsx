@@ -30,10 +30,20 @@ interface SimsarProfile {
   companyName: string;
   bio: string;
   reraId: string;
+  reraCertificateUrl?: string;
+  licenseNumber?: string;
+  licenseDocUrl?: string;
+  emiratesId?: string;
+  emiratesIdUrl?: string;
   experienceYears: number;
+  specialties?: string[];
+  areasOfOperation?: string[];
   languages: string[];
   whatsappNumber: string;
+  profileComplete?: boolean;
+  profileCompletenessScore?: number;
   verificationStatus: string;
+  verificationNotes?: string;
   tier: string;
   score: number;
 }
@@ -1907,6 +1917,37 @@ export default function DashboardPage() {
             )}
           </div>
 
+          {/* Verification CTA for unverified brokers */}
+          {isBroker && simsarProfile && simsarProfile.verificationStatus !== "VERIFIED" && simsarProfile.verificationStatus !== "UNDER_REVIEW" && (
+            <Link
+              href="/dashboard/verify"
+              className="mb-4 flex items-center gap-3 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-3 hover:from-amber-100 hover:to-orange-100 transition-colors"
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500 text-white">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-900">
+                  {simsarProfile.verificationStatus === "REJECTED" || simsarProfile.verificationStatus === "NEED_MORE_DOCS" 
+                    ? "Resubmit Verification" 
+                    : "Get Verified"}
+                </p>
+                <p className="text-xs text-gray-500 truncate">
+                  {simsarProfile.verificationStatus === "REJECTED" 
+                    ? "Update and resubmit" 
+                    : simsarProfile.verificationStatus === "NEED_MORE_DOCS"
+                    ? "More docs required"
+                    : "Complete your profile"}
+                </p>
+              </div>
+              <svg className="h-5 w-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          )}
+
           {/* Navigation */}
           <nav className="space-y-1">
             {sidebarItems.map((item) => (
@@ -2025,36 +2066,87 @@ export default function DashboardPage() {
 
               {/* Verification Status for Brokers */}
               {isBroker && simsarProfile && (
-                <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-                  <h2 className="text-lg font-semibold text-gray-900">Verification Status</h2>
-                  <div className="mt-4 flex items-center gap-4">
-                    <div className={`rounded-full px-4 py-2 text-sm font-medium ${
-                      simsarProfile.verificationStatus === "VERIFIED" 
-                        ? "bg-emerald-100 text-emerald-700"
-                        : simsarProfile.verificationStatus === "PENDING"
-                        ? "bg-amber-100 text-amber-700"
-                        : "bg-gray-100 text-gray-700"
-                    }`}>
-                      {simsarProfile.verificationStatus === "VERIFIED" ? (
-                        <span className="flex items-center gap-2">
-                          <VerifiedIcon /> Verified
+                <div className={`rounded-2xl border p-6 shadow-sm ${
+                  simsarProfile.verificationStatus === "VERIFIED" 
+                    ? "border-emerald-200 bg-emerald-50/50"
+                    : simsarProfile.verificationStatus === "REJECTED"
+                    ? "border-red-200 bg-red-50/50"
+                    : simsarProfile.verificationStatus === "NEED_MORE_DOCS"
+                    ? "border-amber-200 bg-amber-50/50"
+                    : "border-gray-100 bg-white"
+                }`}>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <h2 className="text-lg font-semibold text-gray-900">Verification Status</h2>
+                      <div className="mt-2 flex items-center gap-3">
+                        <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium ${
+                          simsarProfile.verificationStatus === "VERIFIED" 
+                            ? "bg-emerald-100 text-emerald-700"
+                            : simsarProfile.verificationStatus === "UNDER_REVIEW"
+                            ? "bg-blue-100 text-blue-700"
+                            : simsarProfile.verificationStatus === "REJECTED"
+                            ? "bg-red-100 text-red-700"
+                            : simsarProfile.verificationStatus === "NEED_MORE_DOCS"
+                            ? "bg-amber-100 text-amber-700"
+                            : "bg-gray-100 text-gray-700"
+                        }`}>
+                          {simsarProfile.verificationStatus === "VERIFIED" && <VerifiedIcon />}
+                          {simsarProfile.verificationStatus === "UNDER_REVIEW" && (
+                            <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                            </svg>
+                          )}
+                          {simsarProfile.verificationStatus === "VERIFIED" && "Verified"}
+                          {simsarProfile.verificationStatus === "UNDER_REVIEW" && "Under Review"}
+                          {simsarProfile.verificationStatus === "PENDING" && "Not Started"}
+                          {simsarProfile.verificationStatus === "REJECTED" && "Rejected"}
+                          {simsarProfile.verificationStatus === "NEED_MORE_DOCS" && "Action Required"}
                         </span>
-                      ) : (
-                        simsarProfile.verificationStatus
+                        {simsarProfile.reraId && (
+                          <span className="text-sm text-gray-500">
+                            RERA: <span className="font-mono font-medium text-gray-700">{simsarProfile.reraId}</span>
+                          </span>
+                        )}
+                      </div>
+                      {simsarProfile.verificationStatus === "VERIFIED" && (
+                        <p className="mt-2 text-sm text-emerald-700">
+                          Your profile is verified and visible in the public directory.
+                        </p>
+                      )}
+                      {simsarProfile.verificationStatus === "UNDER_REVIEW" && (
+                        <p className="mt-2 text-sm text-blue-700">
+                          Our team is reviewing your documents. This typically takes 24-48 hours.
+                        </p>
+                      )}
+                      {simsarProfile.verificationStatus === "REJECTED" && (
+                        <p className="mt-2 text-sm text-red-700">
+                          Your verification was rejected. Please review the feedback and resubmit.
+                        </p>
+                      )}
+                      {simsarProfile.verificationStatus === "NEED_MORE_DOCS" && (
+                        <p className="mt-2 text-sm text-amber-700">
+                          Additional documents are required. Please check your verification page.
+                        </p>
+                      )}
+                      {simsarProfile.verificationStatus === "PENDING" && (
+                        <p className="mt-2 text-sm text-gray-600">
+                          Complete your profile and submit documents to get verified and appear in the directory.
+                        </p>
                       )}
                     </div>
-                    {simsarProfile.verificationStatus !== "VERIFIED" && (
-                      <button className="text-sm font-medium text-amber-600 hover:text-amber-700">
-                        Complete Verification →
-                      </button>
+                    {simsarProfile.verificationStatus !== "VERIFIED" && simsarProfile.verificationStatus !== "UNDER_REVIEW" && (
+                      <Link
+                        href="/dashboard/verify"
+                        className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600 transition-colors whitespace-nowrap"
+                      >
+                        {simsarProfile.verificationStatus === "PENDING" ? "Start Verification" : "Resubmit"}
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </Link>
                     )}
                   </div>
-                  
-                  {simsarProfile.reraId && (
-                    <p className="mt-4 text-sm text-gray-500">
-                      RERA ID: <span className="font-mono font-medium text-gray-700">{simsarProfile.reraId}</span>
-                    </p>
-                  )}
                 </div>
               )}
 

@@ -69,10 +69,15 @@ interface Agency {
   bannerUrl: string | null;
   bio: string | null;
   reraLicenseNumber: string | null;
+  reraLicenseUrl: string | null;
+  tradeLicenseUrl: string | null;
+  officeAddress: string | null;
+  officePhotosUrl: string | null;
   website: string | null;
   email: string | null;
   phone: string | null;
   verificationStatus: string;
+  verificationNotes: string | null;
   brokerCount: number;
   pendingInvites: number;
   pendingRequests: number;
@@ -131,6 +136,354 @@ const MailIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
   </svg>
 );
+
+/* ─── AGENCY SETTINGS TAB ───────────────────────────────────── */
+function AgencySettingsTab({ agency, onAgencyUpdate }: { agency: Agency; onAgencyUpdate: (agency: Partial<Agency>) => void }) {
+  const [formData, setFormData] = useState({
+    name: agency.name || "",
+    bio: agency.bio || "",
+    logoUrl: agency.logoUrl || "",
+    bannerUrl: agency.bannerUrl || "",
+    reraLicenseNumber: agency.reraLicenseNumber || "",
+    reraLicenseUrl: agency.reraLicenseUrl || "",
+    tradeLicenseUrl: agency.tradeLicenseUrl || "",
+    officeAddress: agency.officeAddress || "",
+    website: agency.website || "",
+    email: agency.email || "",
+    phone: agency.phone || "",
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSubmittingVerification, setIsSubmittingVerification] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [verificationSuccess, setVerificationSuccess] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    setError("");
+    setSaveSuccess(false);
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/agencies/${agency.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      if (res.ok) {
+        setSaveSuccess(true);
+        onAgencyUpdate(formData);
+        setTimeout(() => setSaveSuccess(false), 3000);
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to save changes");
+      }
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSubmitVerification = async () => {
+    // Validate required fields
+    if (!formData.logoUrl || !formData.reraLicenseNumber || !formData.reraLicenseUrl || !formData.tradeLicenseUrl) {
+      setError("Please fill in all required fields: Logo URL, RERA License Number, RERA License URL, and Trade License URL");
+      return;
+    }
+
+    setIsSubmittingVerification(true);
+    setError("");
+
+    try {
+      const token = localStorage.getItem("token");
+      // First save the data
+      const saveRes = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/agencies/${agency.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            ...formData,
+            verificationStatus: "UNDER_REVIEW",
+          }),
+        }
+      );
+
+      if (saveRes.ok) {
+        setVerificationSuccess(true);
+        onAgencyUpdate({ ...formData, verificationStatus: "UNDER_REVIEW" });
+      } else {
+        const data = await saveRes.json();
+        setError(data.error || "Failed to submit verification");
+      }
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setIsSubmittingVerification(false);
+    }
+  };
+
+  const canSubmitVerification = formData.logoUrl && formData.reraLicenseNumber && formData.reraLicenseUrl && formData.tradeLicenseUrl;
+
+  return (
+    <div className="max-w-3xl space-y-8">
+      <div>
+        <h2 className="text-xl font-bold text-gray-900">Agency Settings</h2>
+        <p className="mt-1 text-gray-600">Manage your agency profile and verification</p>
+      </div>
+
+      {/* Verification Status */}
+      <div className={`rounded-xl border p-6 ${
+        agency.verificationStatus === "VERIFIED" 
+          ? "border-emerald-200 bg-emerald-50/50"
+          : agency.verificationStatus === "REJECTED"
+          ? "border-red-200 bg-red-50/50"
+          : agency.verificationStatus === "UNDER_REVIEW"
+          ? "border-blue-200 bg-blue-50/50"
+          : "border-gray-200 bg-white"
+      }`}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h3 className="font-semibold text-gray-900">Verification Status</h3>
+            <div className="mt-2 flex items-center gap-2">
+              <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium ${
+                agency.verificationStatus === "VERIFIED" 
+                  ? "bg-emerald-100 text-emerald-700"
+                  : agency.verificationStatus === "UNDER_REVIEW"
+                  ? "bg-blue-100 text-blue-700"
+                  : agency.verificationStatus === "REJECTED"
+                  ? "bg-red-100 text-red-700"
+                  : "bg-gray-100 text-gray-700"
+              }`}>
+                {agency.verificationStatus === "VERIFIED" && (
+                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                )}
+                {agency.verificationStatus === "VERIFIED" && "Verified"}
+                {agency.verificationStatus === "UNDER_REVIEW" && "Under Review"}
+                {agency.verificationStatus === "PENDING" && "Not Verified"}
+                {agency.verificationStatus === "REJECTED" && "Rejected"}
+              </span>
+            </div>
+            {agency.verificationStatus === "VERIFIED" && (
+              <p className="mt-2 text-sm text-emerald-700">Your agency is verified and trusted by clients.</p>
+            )}
+            {agency.verificationStatus === "UNDER_REVIEW" && (
+              <p className="mt-2 text-sm text-blue-700">Our team is reviewing your documents. This typically takes 24-48 hours.</p>
+            )}
+            {agency.verificationStatus === "REJECTED" && agency.verificationNotes && (
+              <p className="mt-2 text-sm text-red-700">{agency.verificationNotes}</p>
+            )}
+            {agency.verificationStatus === "PENDING" && (
+              <p className="mt-2 text-sm text-gray-600">Complete your agency profile and submit documents for verification.</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {verificationSuccess && (
+        <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-4 text-emerald-800">
+          Verification request submitted! Our team will review your documents within 24-48 hours.
+        </div>
+      )}
+
+      {saveSuccess && (
+        <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-4 text-emerald-800">
+          Changes saved successfully!
+        </div>
+      )}
+
+      {error && (
+        <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-red-800">
+          {error}
+        </div>
+      )}
+
+      {/* Basic Info */}
+      <div className="rounded-xl border border-gray-200 bg-white p-6">
+        <h3 className="font-semibold text-gray-900">Basic Information</h3>
+        <div className="mt-4 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Agency Name</label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Bio / Description</label>
+            <textarea
+              rows={3}
+              value={formData.bio}
+              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+              placeholder="Tell clients about your agency..."
+            />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Logo URL <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="url"
+                value={formData.logoUrl}
+                onChange={(e) => setFormData({ ...formData, logoUrl: e.target.value })}
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                placeholder="https://example.com/logo.png"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Banner URL</label>
+              <input
+                type="url"
+                value={formData.bannerUrl}
+                onChange={(e) => setFormData({ ...formData, bannerUrl: e.target.value })}
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                placeholder="https://example.com/banner.jpg"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Contact Info */}
+      <div className="rounded-xl border border-gray-200 bg-white p-6">
+        <h3 className="font-semibold text-gray-900">Contact Information</h3>
+        <div className="mt-4 space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Email</label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Phone</label>
+              <input
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Website</label>
+            <input
+              type="url"
+              value={formData.website}
+              onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+              placeholder="https://yourwebsite.com"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Office Address</label>
+            <input
+              type="text"
+              value={formData.officeAddress}
+              onChange={(e) => setFormData({ ...formData, officeAddress: e.target.value })}
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+              placeholder="123 Business Bay, Dubai, UAE"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Verification Documents */}
+      <div className="rounded-xl border border-gray-200 bg-white p-6">
+        <h3 className="font-semibold text-gray-900">Verification Documents</h3>
+        <p className="mt-1 text-sm text-gray-500">
+          Provide URLs to your verification documents. You can upload documents to services like Google Drive, Dropbox, or Imgur.
+        </p>
+        <div className="mt-4 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              RERA License Number <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={formData.reraLicenseNumber}
+              onChange={(e) => setFormData({ ...formData, reraLicenseNumber: e.target.value })}
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+              placeholder="ORN-XXXXX"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              RERA License Document URL <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="url"
+              value={formData.reraLicenseUrl}
+              onChange={(e) => setFormData({ ...formData, reraLicenseUrl: e.target.value })}
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+              placeholder="https://drive.google.com/file/..."
+            />
+            <p className="mt-1 text-xs text-gray-500">Your official RERA organization license</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Trade License Document URL <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="url"
+              value={formData.tradeLicenseUrl}
+              onChange={(e) => setFormData({ ...formData, tradeLicenseUrl: e.target.value })}
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+              placeholder="https://drive.google.com/file/..."
+            />
+            <p className="mt-1 text-xs text-gray-500">Your UAE trade license document</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <button
+          onClick={handleSave}
+          disabled={isSaving}
+          className="flex-1 rounded-lg border border-gray-300 px-6 py-3 font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+        >
+          {isSaving ? "Saving..." : "Save Changes"}
+        </button>
+        {agency.verificationStatus !== "VERIFIED" && agency.verificationStatus !== "UNDER_REVIEW" && (
+          <button
+            onClick={handleSubmitVerification}
+            disabled={!canSubmitVerification || isSubmittingVerification}
+            className="flex-1 rounded-lg bg-purple-600 px-6 py-3 font-medium text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmittingVerification ? "Submitting..." : "Submit for Verification"}
+          </button>
+        )}
+      </div>
+
+      {!canSubmitVerification && agency.verificationStatus === "PENDING" && (
+        <p className="text-sm text-amber-600">
+          * Fill in all required fields (Logo URL, RERA License Number, RERA License URL, Trade License URL) to submit for verification.
+        </p>
+      )}
+    </div>
+  );
+}
 
 export default function AgencyDashboardPage() {
   const router = useRouter();
@@ -673,12 +1026,7 @@ export default function AgencyDashboardPage() {
           )}
 
           {activeTab === "settings" && (
-            <div className="max-w-2xl">
-              <h2 className="mb-6 text-xl font-bold text-gray-900">Agency Settings</h2>
-              <div className="rounded-xl border border-gray-200 bg-white p-6">
-                <p className="text-gray-600">Agency settings coming soon. You can update your logo, banner, and other details here.</p>
-              </div>
-            </div>
+            <AgencySettingsTab agency={agency} onAgencyUpdate={(updated) => setAgency({ ...agency, ...updated })} />
           )}
         </div>
       </main>
