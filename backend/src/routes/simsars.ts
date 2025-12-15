@@ -704,32 +704,70 @@ router.get("/:id/portfolio", async (req, res) => {
   return res.json(
     items.map((item) => ({
       id: item.id,
+      referenceNumber: item.referenceNumber,
       type: item.type,
+      propertyType: item.propertyType,
       title: item.title,
+      description: item.description,
       location: item.location,
+      building: item.building,
       price: item.price,
+      priceNumeric: item.priceNumeric,
       bedrooms: item.bedrooms,
       bathrooms: item.bathrooms,
       area: item.area,
+      areaNumeric: item.areaNumeric,
+      furnishing: item.furnishing,
+      amenities: JSON.parse(item.amenities || "[]"),
+      features: JSON.parse(item.features || "[]"),
       images: JSON.parse(item.images || "[]"),
       status: item.status,
-      description: item.description,
-      date: item.createdAt.toISOString(),
+      featured: item.featured,
+      viewCount: item.viewCount,
+      createdAt: item.createdAt,
     }))
   );
 });
 
+// Helper to parse numeric values
+function parseNumericPrice(price: string): number {
+  const cleaned = price.replace(/[^0-9]/g, '');
+  return parseInt(cleaned) || 0;
+}
+
+function parseNumericArea(area: string): number {
+  const cleaned = area.replace(/[^0-9]/g, '');
+  return parseInt(cleaned) || 0;
+}
+
+async function generateReferenceNumber(): Promise<string> {
+  const count = await prisma.portfolioItem.count();
+  const num = count + 1;
+  return `MS-${String(num).padStart(5, '0')}`;
+}
+
 const portfolioSchema = z.object({
   type: z.enum(["sale", "rental", "off-plan"]),
+  propertyType: z.enum(["apartment", "villa", "townhouse", "penthouse", "land", "office", "studio"]).default("apartment"),
   title: z.string().min(1),
+  description: z.string().optional(),
   location: z.string().min(1),
+  building: z.string().optional(),
+  address: z.string().optional(),
   price: z.string().min(1),
+  paymentPlan: z.string().optional(),
   bedrooms: z.number().int().min(0),
   bathrooms: z.number().int().min(0),
   area: z.string().min(1),
+  furnishing: z.enum(["Furnished", "Unfurnished", "Semi-Furnished"]).optional(),
+  completionYear: z.number().int().optional(),
+  permitNumber: z.string().optional(),
+  amenities: z.array(z.string()).optional(),
+  features: z.array(z.string()).optional(),
   images: z.array(z.string().url()).min(1),
-  status: z.enum(["sold", "rented", "available"]),
-  description: z.string().optional(),
+  videoUrl: z.string().url().optional(),
+  floorPlanUrl: z.string().url().optional(),
+  status: z.enum(["sold", "rented", "available", "reserved"]),
 });
 
 // Add portfolio item (broker only)
@@ -747,35 +785,61 @@ router.post("/:id/portfolio", requireAuth(["BROKER"]), async (req, res) => {
     return res.status(403).json({ error: "Forbidden" });
   }
 
+  const referenceNumber = await generateReferenceNumber();
+  const priceNumeric = parseNumericPrice(parse.data.price);
+  const areaNumeric = parseNumericArea(parse.data.area);
+
   const item = await prisma.portfolioItem.create({
     data: {
       simsarId: simsar.id,
+      referenceNumber,
       type: parse.data.type,
+      propertyType: parse.data.propertyType || "apartment",
       title: parse.data.title,
+      description: parse.data.description || null,
       location: parse.data.location,
+      building: parse.data.building || null,
+      address: parse.data.address || null,
       price: parse.data.price,
+      priceNumeric,
+      paymentPlan: parse.data.paymentPlan || null,
       bedrooms: parse.data.bedrooms,
       bathrooms: parse.data.bathrooms,
       area: parse.data.area,
+      areaNumeric,
+      furnishing: parse.data.furnishing || null,
+      completionYear: parse.data.completionYear || null,
+      permitNumber: parse.data.permitNumber || null,
+      amenities: JSON.stringify(parse.data.amenities || []),
+      features: JSON.stringify(parse.data.features || []),
       images: JSON.stringify(parse.data.images),
+      videoUrl: parse.data.videoUrl || null,
+      floorPlanUrl: parse.data.floorPlanUrl || null,
       status: parse.data.status,
-      description: parse.data.description || null,
     },
   });
 
   return res.status(201).json({
     id: item.id,
+    referenceNumber: item.referenceNumber,
     type: item.type,
+    propertyType: item.propertyType,
     title: item.title,
+    description: item.description,
     location: item.location,
+    building: item.building,
     price: item.price,
+    priceNumeric: item.priceNumeric,
     bedrooms: item.bedrooms,
     bathrooms: item.bathrooms,
     area: item.area,
+    areaNumeric: item.areaNumeric,
+    furnishing: item.furnishing,
+    amenities: JSON.parse(item.amenities),
+    features: JSON.parse(item.features),
     images: JSON.parse(item.images),
     status: item.status,
-    description: item.description,
-    date: item.createdAt.toISOString(),
+    createdAt: item.createdAt,
   });
 });
 
@@ -801,28 +865,47 @@ router.put("/:id/portfolio/:itemId", requireAuth(["BROKER"]), async (req, res) =
     return res.status(404).json({ error: "Portfolio item not found" });
   }
 
-  const { images, ...rest } = parse.data;
+  const { images, amenities, features, price, area, ...rest } = parse.data;
+  
+  const updateData: any = { ...rest };
+  if (images) updateData.images = JSON.stringify(images);
+  if (amenities) updateData.amenities = JSON.stringify(amenities);
+  if (features) updateData.features = JSON.stringify(features);
+  if (price) {
+    updateData.price = price;
+    updateData.priceNumeric = parseNumericPrice(price);
+  }
+  if (area) {
+    updateData.area = area;
+    updateData.areaNumeric = parseNumericArea(area);
+  }
+
   const item = await prisma.portfolioItem.update({
     where: { id: req.params.itemId },
-    data: {
-      ...rest,
-      ...(images ? { images: JSON.stringify(images) } : {}),
-    },
+    data: updateData,
   });
 
   return res.json({
     id: item.id,
+    referenceNumber: item.referenceNumber,
     type: item.type,
+    propertyType: item.propertyType,
     title: item.title,
+    description: item.description,
     location: item.location,
+    building: item.building,
     price: item.price,
+    priceNumeric: item.priceNumeric,
     bedrooms: item.bedrooms,
     bathrooms: item.bathrooms,
     area: item.area,
+    areaNumeric: item.areaNumeric,
+    furnishing: item.furnishing,
+    amenities: JSON.parse(item.amenities),
+    features: JSON.parse(item.features),
     images: JSON.parse(item.images),
     status: item.status,
-    description: item.description,
-    date: item.createdAt.toISOString(),
+    createdAt: item.createdAt,
   });
 });
 

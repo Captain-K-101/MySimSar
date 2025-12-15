@@ -138,24 +138,61 @@ model Simsar {
 }
 
 model PortfolioItem {
-  id          String   @id @default(cuid())
-  simsarId    String
-  type        String   // sale, rental, off-plan
-  title       String
-  location    String
-  price       String
-  bedrooms    Int
-  bathrooms   Int
-  area        String
-  images      String   @default("[]") // JSON array of image URLs
-  status      String   // sold, rented, available
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(cuid())
+  simsarId        String
+  referenceNumber String   @unique // e.g., "MS-12345"
+  
+  // Type and Category
+  type            String   // sale, rental, off-plan
+  propertyType    String   @default("apartment") // apartment, villa, townhouse, penthouse, land, office, studio
+  title           String
+  description     String?
+  
+  // Location
+  location        String   // Area name (e.g., "Dubai Marina")
+  building        String?  // Building/community name
+  address         String?  // Full address
+  latitude        Float?
+  longitude       Float?
+  
+  // Pricing
+  price           String   // Formatted price string
+  priceNumeric    Int      @default(0) // Price in AED for sorting/filtering
+  paymentPlan     String?  // For off-plan properties
+  
+  // Property Details
+  bedrooms        Int
+  bathrooms       Int
+  area            String   // Formatted area string
+  areaNumeric     Int      @default(0) // Sq ft as number for filtering
+  furnishing      String?  // Furnished, Unfurnished, Semi-Furnished
+  completionYear  Int?
+  permitNumber    String?
+  
+  // Features & Amenities (JSON arrays)
+  amenities       String   @default("[]") // Pool, Gym, Parking, Security, etc.
+  features        String   @default("[]") // Balcony, Maid's Room, Study, etc.
+  
+  // Media
+  images          String   @default("[]") // JSON array of image URLs
+  videoUrl        String?
+  floorPlanUrl    String?
+  
+  // Status and Visibility
+  status          String   // available, sold, rented, reserved
+  featured        Boolean  @default(false)
+  viewCount       Int      @default(0)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  simsar      Simsar   @relation(fields: [simsarId], references: [id], onDelete: Cascade)
+  simsar          Simsar   @relation(fields: [simsarId], references: [id], onDelete: Cascade)
 
   @@index([simsarId])
+  @@index([location, propertyType, status])
+  @@index([priceNumeric])
+  @@index([bedrooms])
+  @@index([status])
 }
 
 model RecruitmentOffer {

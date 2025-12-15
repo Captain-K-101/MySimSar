@@ -8,6 +8,7 @@ import adminRoutes from "./routes/admin";
 import agencyRoutes from "./routes/agencies";
 import messageRoutes from "./routes/messages";
 import analyticsRoutes from "./routes/analytics";
+import propertiesRoutes from "./routes/properties";
 
 const app = express();
 
@@ -59,6 +60,7 @@ app.use("/admin", adminRoutes);
 app.use("/agencies", agencyRoutes);
 app.use("/messages", messageRoutes);
 app.use("/analytics", analyticsRoutes);
+app.use("/properties", propertiesRoutes);
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err);

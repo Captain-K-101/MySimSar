@@ -49,75 +49,31 @@ interface Simsar {
 
 interface PortfolioItem {
   id: string;
+  referenceNumber: string;
   type: "sale" | "rental" | "off-plan";
+  propertyType: string;
   title: string;
+  description?: string;
   location: string;
+  building?: string;
   price: string;
+  priceNumeric: number;
   bedrooms: number;
   bathrooms: number;
   area: string;
+  areaNumeric: number;
+  furnishing?: string;
+  amenities: string[];
+  features: string[];
   images: string[];
-  status: "sold" | "rented" | "available";
-  date: string;
+  status: "sold" | "rented" | "available" | "reserved";
+  featured: boolean;
+  viewCount: number;
+  createdAt: string;
 }
 
-/* ─── MOCK PORTFOLIO ─────────────────────────────────────── */
-const mockPortfolio: PortfolioItem[] = [
-  {
-    id: "1",
-    type: "sale",
-    title: "Luxury Penthouse - Marina View",
-    location: "Dubai Marina",
-    price: "AED 4,500,000",
-    bedrooms: 3,
-    bathrooms: 4,
-    area: "3,200 sq ft",
-    images: [
-      "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop",
-    ],
-    status: "sold",
-    date: "2024-11-15",
-  },
-  {
-    id: "2",
-    type: "sale",
-    title: "Downtown Executive Suite",
-    location: "Downtown Dubai",
-    price: "AED 2,800,000",
-    bedrooms: 2,
-    bathrooms: 2,
-    area: "1,850 sq ft",
-    images: [
-      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600&fit=crop",
-    ],
-    status: "sold",
-    date: "2024-10-20",
-  },
-  {
-    id: "3",
-    type: "rental",
-    title: "Modern Villa - Palm Jumeirah",
-    location: "Palm Jumeirah",
-    price: "AED 450,000/year",
-    bedrooms: 5,
-    bathrooms: 6,
-    area: "6,500 sq ft",
-    images: [
-      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1600607687644-c7f34b5063c7?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1600573472591-ee6b68d14c68?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1613977257363-707ba9348227?w=800&h=600&fit=crop",
-    ],
-    status: "rented",
-    date: "2024-09-01",
-  },
-];
+/* ─── API URL ─────────────────────────────────────── */
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 /* ─── ICONS ───────────────────────────────────────────────── */
 const StarIcon = ({ filled = true, className = "h-5 w-5" }: { filled?: boolean; className?: string }) => (
@@ -205,7 +161,7 @@ const ChevronRightSmallIcon = ({ className = "h-4 w-4" }: { className?: string }
   </svg>
 );
 
-/* ─── PROPERTY DETAIL MODAL ─────────────────────────────────── */
+/* ─── PROPERTY DETAIL MODAL (For completed transactions) ─────────────────────────────────── */
 function PropertyDetailModal({ property, onClose }: { property: PortfolioItem; onClose: () => void }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -276,25 +232,38 @@ function PropertyDetailModal({ property, onClose }: { property: PortfolioItem; o
         )}
 
         <div className="p-5 sm:p-6">
+          <div className="flex items-center gap-2 mb-2">
+            <span className={`rounded-md px-2 py-1 text-xs font-semibold ${property.status === "sold" ? "bg-emerald-500 text-white" : "bg-blue-500 text-white"}`}>
+              {property.status === "sold" ? "Sold" : "Rented"}
+            </span>
+            {property.referenceNumber && (
+              <span className="text-xs text-gray-400">Ref: {property.referenceNumber}</span>
+            )}
+          </div>
           <h2 className="text-2xl font-bold text-gray-900">{property.title}</h2>
           <p className="mt-1 flex items-center gap-2 text-gray-500">
             <LocationIcon className="h-4 w-4" />
             {property.location}
+            {property.building && <span className="text-gray-400">• {property.building}</span>}
           </p>
           
           <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { value: property.bedrooms, label: "Bedrooms" },
+              { value: property.bedrooms === 0 ? "Studio" : property.bedrooms, label: "Bedrooms" },
               { value: property.bathrooms, label: "Bathrooms" },
-              { value: property.area.replace(" sq ft", ""), label: "Sq Ft" },
-              { value: new Date(property.date).toLocaleDateString("en-US", { month: "short", year: "2-digit" }), label: "Completed" },
+              { value: property.area, label: "Size" },
+              { value: property.furnishing || "N/A", label: "Furnishing" },
             ].map((stat) => (
               <div key={stat.label} className="rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 p-4 text-center">
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                <p className="text-xl font-bold text-gray-900">{stat.value}</p>
                 <p className="text-xs font-medium text-gray-500">{stat.label}</p>
-            </div>
+              </div>
             ))}
           </div>
+
+          {property.description && (
+            <p className="mt-4 text-gray-600 text-sm">{property.description}</p>
+          )}
 
           <button onClick={onClose} className="mt-6 w-full rounded-xl bg-slate-900 px-4 py-3.5 font-semibold text-white transition-all hover:bg-slate-800 hover:shadow-lg">
             Close
@@ -307,15 +276,27 @@ function PropertyDetailModal({ property, onClose }: { property: PortfolioItem; o
 
 /* ─── PORTFOLIO CARD ──────────────────────────────────────── */
 function PortfolioCard({ item, onClick }: { item: PortfolioItem; onClick: () => void }) {
-  const statusColors = {
+  const router = useRouter();
+  const statusColors: Record<string, string> = {
     sold: "bg-emerald-500 text-white",
     rented: "bg-blue-500 text-white",
     available: "bg-amber-500 text-white",
+    reserved: "bg-purple-500 text-white",
   };
-  const typeLabels = { sale: "Sale", rental: "Rental", "off-plan": "Off-Plan" };
+  const typeLabels: Record<string, string> = { sale: "Sale", rental: "Rental", "off-plan": "Off-Plan" };
+
+  const handleClick = () => {
+    // If property is available, navigate to property page
+    // Otherwise, show modal for completed transactions
+    if (item.status === "available" || item.status === "reserved") {
+      router.push(`/property/${item.id}`);
+    } else {
+      onClick();
+    }
+  };
 
   return (
-    <div className="group cursor-pointer overflow-hidden rounded-xl bg-white border border-gray-200 transition-all duration-300 hover:shadow-xl hover:border-gray-300" onClick={onClick}>
+    <div className="group cursor-pointer overflow-hidden rounded-xl bg-white border border-gray-200 transition-all duration-300 hover:shadow-xl hover:border-gray-300" onClick={handleClick}>
       <div className="relative h-48 overflow-hidden">
         <img 
           src={item.images[0] || "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&h=400&fit=crop"} 
@@ -325,8 +306,8 @@ function PortfolioCard({ item, onClick }: { item: PortfolioItem; onClick: () => 
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         <div className="absolute left-3 top-3 flex gap-2">
-          <span className="rounded-md bg-white px-2 py-1 text-xs font-semibold text-gray-800">{typeLabels[item.type]}</span>
-          <span className={`rounded-md px-2 py-1 text-xs font-semibold ${statusColors[item.status]}`}>{item.status.charAt(0).toUpperCase() + item.status.slice(1)}</span>
+          <span className="rounded-md bg-white px-2 py-1 text-xs font-semibold text-gray-800">{typeLabels[item.type] || item.type}</span>
+          <span className={`rounded-md px-2 py-1 text-xs font-semibold ${statusColors[item.status] || "bg-gray-500 text-white"}`}>{item.status.charAt(0).toUpperCase() + item.status.slice(1)}</span>
         </div>
         <div className="absolute bottom-3 left-3 right-3">
           <p className="text-xl font-bold text-white">{item.price}</p>
@@ -345,14 +326,15 @@ function PortfolioCard({ item, onClick }: { item: PortfolioItem; onClick: () => 
         <p className="mt-1 flex items-center gap-1.5 text-sm text-gray-500">
           <LocationIcon className="h-4 w-4" />
           {item.location}
+          {item.building && <span className="text-gray-400">• {item.building}</span>}
         </p>
         <div className="mt-3 flex items-center gap-3 text-sm text-gray-600 border-t border-gray-100 pt-3">
           <span className="flex items-center gap-1">
             <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
-            {item.bedrooms} Beds
-    </span>
+            {item.bedrooms === 0 ? "Studio" : `${item.bedrooms} Beds`}
+          </span>
           <span className="flex items-center gap-1">
             <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
@@ -361,6 +343,9 @@ function PortfolioCard({ item, onClick }: { item: PortfolioItem; onClick: () => 
           </span>
           <span className="ml-auto font-medium text-gray-900">{item.area}</span>
         </div>
+        {item.referenceNumber && (
+          <p className="mt-2 text-xs text-gray-400">Ref: {item.referenceNumber}</p>
+        )}
       </div>
     </div>
   );
@@ -410,6 +395,7 @@ export default function SimsarProfilePage() {
   const router = useRouter();
   const { isAuthenticated, logout, user } = useAuth();
   const [simsar, setSimsar] = useState<Simsar | null>(null);
+  const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showClaimModal, setShowClaimModal] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -429,11 +415,16 @@ export default function SimsarProfilePage() {
   const [reviewSuccess, setReviewSuccess] = useState(false);
 
   useEffect(() => {
-    const fetchSimsar = async () => {
+    const fetchSimsarAndPortfolio = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/simsars/${params.id}`);
-        if (res.ok) {
-          const data = await res.json();
+        // Fetch simsar profile and portfolio in parallel
+        const [simsarRes, portfolioRes] = await Promise.all([
+          fetch(`${API}/simsars/${params.id}`),
+          fetch(`${API}/simsars/${params.id}/portfolio`),
+        ]);
+
+        if (simsarRes.ok) {
+          const data = await simsarRes.json();
           // Parse JSON arrays if they come as strings
           if (typeof data.specialties === 'string') {
             try { data.specialties = JSON.parse(data.specialties); } catch { data.specialties = []; }
@@ -445,6 +436,11 @@ export default function SimsarProfilePage() {
         } else {
           setSimsar(null);
         }
+
+        if (portfolioRes.ok) {
+          const portfolioData = await portfolioRes.json();
+          setPortfolio(portfolioData);
+        }
       } catch (error) {
         console.error("Failed to fetch simsar:", error);
         setSimsar(null);
@@ -452,7 +448,7 @@ export default function SimsarProfilePage() {
         setIsLoading(false);
       }
     };
-    fetchSimsar();
+    fetchSimsarAndPortfolio();
   }, [params.id]);
 
   useEffect(() => {
@@ -460,13 +456,12 @@ export default function SimsarProfilePage() {
     const headers: Record<string, string> = {};
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     if (token) headers["Authorization"] = `Bearer ${token}`;
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/analytics/profile-view/${params.id}`, {
+    fetch(`${API}/analytics/profile-view/${params.id}`, {
       method: "POST",
       headers,
     }).catch(() => {});
   }, [params.id]);
 
-  const portfolio = mockPortfolio;
   const filteredPortfolio = portfolioFilter === "all" ? portfolio : portfolio.filter(item => item.type === portfolioFilter);
 
   // Calculate stats
@@ -495,7 +490,7 @@ export default function SimsarProfilePage() {
     setClaimError("");
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/simsars/${simsar.id}/claims`, {
+      const res = await fetch(`${API}/simsars/${simsar.id}/claims`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ proofLinks: { transactionType: claimForm.transactionType, location: claimForm.location, proofUrl: claimForm.proofUrl } }),
@@ -521,7 +516,7 @@ export default function SimsarProfilePage() {
     setReviewError("");
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/simsars/${simsar.id}/reviews`, {
+      const res = await fetch(`${API}/simsars/${simsar.id}/reviews`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ claimId: reviewForm.claimId, rating: reviewForm.rating, text: reviewForm.text }),
@@ -529,7 +524,7 @@ export default function SimsarProfilePage() {
       if (res.ok) {
         setReviewSuccess(true);
         setReviewForm({ rating: 5, text: "", claimId: "" });
-        const refreshRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/simsars/${params.id}`);
+        const refreshRes = await fetch(`${API}/simsars/${params.id}`);
         if (refreshRes.ok) setSimsar(await refreshRes.json());
       } else {
         const data = await res.json();
@@ -826,7 +821,12 @@ export default function SimsarProfilePage() {
               {activeSection === "portfolio" && (
                   <div>
                     <div className="flex items-center justify-between flex-wrap gap-4 mb-5">
-                      <h3 className="font-semibold text-gray-900">Past Transactions</h3>
+                      <div>
+                        <h3 className="font-semibold text-gray-900">Properties & Transactions</h3>
+                        <p className="text-sm text-gray-500 mt-1">
+                          {portfolio.filter(p => p.status === "available").length} available, {portfolio.filter(p => p.status === "sold" || p.status === "rented").length} completed
+                        </p>
+                      </div>
                     <div className="flex gap-2">
                         {(["all", "sale", "rental", "off-plan"] as const).map((f) => (
                         <button
@@ -841,11 +841,30 @@ export default function SimsarProfilePage() {
                       ))}
                     </div>
                   </div>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                    {filteredPortfolio.map((item) => (
-                      <PortfolioCard key={item.id} item={item} onClick={() => setSelectedProperty(item)} />
-                    ))}
-                  </div>
+                    {filteredPortfolio.length > 0 ? (
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        {filteredPortfolio.map((item) => (
+                          <PortfolioCard key={item.id} item={item} onClick={() => setSelectedProperty(item)} />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-10 border-2 border-dashed border-gray-200 rounded-xl">
+                        <HomeIcon className="mx-auto h-10 w-10 text-gray-300" />
+                        <h4 className="mt-3 font-semibold text-gray-900">No properties listed</h4>
+                        <p className="mt-1 text-sm text-gray-500">This broker hasn&apos;t added any properties yet.</p>
+                      </div>
+                    )}
+                    {portfolio.filter(p => p.status === "available").length > 0 && (
+                      <div className="mt-6 text-center">
+                        <Link
+                          href={`/properties?brokerId=${simsar.id}`}
+                          className="inline-flex items-center gap-2 text-amber-600 font-medium hover:text-amber-700"
+                        >
+                          View all available properties
+                          <ChevronRightSmallIcon />
+                        </Link>
+                      </div>
+                    )}
                   </div>
               )}
 
