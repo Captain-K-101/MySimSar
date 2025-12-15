@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
@@ -99,15 +99,46 @@ const stats = [
   { value: "15+", label: "Cities Covered" },
 ];
 
-const areas = [
+const AREAS = [
   "Dubai Marina",
   "Downtown Dubai",
   "Palm Jumeirah",
-  "JVC",
+  "JVC (Jumeirah Village Circle)",
   "Business Bay",
   "JBR",
   "DIFC",
+  "Dubai Hills",
+  "Arabian Ranches",
   "Abu Dhabi",
+  "Sharjah",
+];
+
+const LANGUAGES = [
+  "English",
+  "Arabic",
+  "Hindi",
+  "Urdu",
+  "Russian",
+  "Mandarin",
+  "French",
+  "Tagalog",
+  "Spanish",
+  "Portuguese",
+];
+
+const EXPERIENCE_LEVELS = [
+  { value: "", label: "Any Experience" },
+  { value: "1-5", label: "1-5 years" },
+  { value: "5-10", label: "5-10 years" },
+  { value: "10+", label: "10+ years" },
+];
+
+const SPECIALTIES = [
+  { id: "residential", label: "Residential", icon: "🏠" },
+  { id: "commercial", label: "Commercial", icon: "🏢" },
+  { id: "off-plan", label: "Off-Plan", icon: "🏗️" },
+  { id: "luxury", label: "Luxury", icon: "💎" },
+  { id: "agencies", label: "Agencies", icon: "🏛️" },
 ];
 
 /* ─────────────────────────────────────────────────────────────
@@ -159,6 +190,24 @@ const CheckCircleIcon = () => (
 const WhatsAppIcon = () => (
   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+  </svg>
+);
+
+const ChevronDownIcon = () => (
+  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+  </svg>
+);
+
+const GlobeIcon = () => (
+  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+  </svg>
+);
+
+const BriefcaseIcon = () => (
+  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
   </svg>
 );
 
@@ -281,18 +330,164 @@ function SimsarCard({ simsar }: { simsar: typeof topSimsars[0] }) {
 }
 
 /* ─────────────────────────────────────────────────────────────
+   DROPDOWN COMPONENT
+───────────────────────────────────────────────────────────────── */
+function Dropdown({ 
+  value, 
+  onChange, 
+  options, 
+  placeholder, 
+  icon 
+}: { 
+  value: string; 
+  onChange: (v: string) => void; 
+  options: { value: string; label: string }[]; 
+  placeholder: string;
+  icon: React.ReactNode;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find(o => o.value === value);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex w-full items-center gap-2 rounded-lg bg-white/10 px-4 py-3 text-left text-white backdrop-blur-sm transition hover:bg-white/20"
+      >
+        <span className="text-white/70">{icon}</span>
+        <span className="flex-1 truncate">
+          {selectedOption?.label || placeholder}
+        </span>
+        <ChevronDownIcon />
+      </button>
+      
+      {isOpen && (
+        <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-60 overflow-auto rounded-xl bg-white py-2 shadow-xl ring-1 ring-black/5">
+          {options.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => {
+                onChange(option.value);
+                setIsOpen(false);
+              }}
+              className={`w-full px-4 py-2.5 text-left text-sm transition hover:bg-gray-50 ${
+                value === option.value ? "bg-amber-50 font-medium text-amber-700" : "text-gray-700"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   AREA AUTOCOMPLETE COMPONENT
+───────────────────────────────────────────────────────────────── */
+function AreaAutocomplete({ 
+  value, 
+  onChange 
+}: { 
+  value: string; 
+  onChange: (v: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [filteredAreas, setFilteredAreas] = useState(AREAS);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (value) {
+      setFilteredAreas(AREAS.filter(area => 
+        area.toLowerCase().includes(value.toLowerCase())
+      ));
+    } else {
+      setFilteredAreas(AREAS);
+    }
+  }, [value]);
+
+  return (
+    <div className="relative flex-1" ref={dropdownRef}>
+      <div className="flex items-center gap-2 rounded-lg bg-white/10 px-4 py-3 backdrop-blur-sm transition hover:bg-white/20">
+        <span className="text-white/70"><LocationIcon /></span>
+        <input
+          ref={inputRef}
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={() => setIsOpen(true)}
+          placeholder="City, community or building"
+          className="w-full bg-transparent text-white placeholder-white/60 focus:outline-none"
+        />
+      </div>
+      
+      {isOpen && filteredAreas.length > 0 && (
+        <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-60 overflow-auto rounded-xl bg-white py-2 shadow-xl ring-1 ring-black/5">
+          {filteredAreas.map((area) => (
+            <button
+              key={area}
+              type="button"
+              onClick={() => {
+                onChange(area);
+                setIsOpen(false);
+              }}
+              className="w-full px-4 py-2.5 text-left text-sm text-gray-700 transition hover:bg-gray-50"
+            >
+              <div className="flex items-center gap-2">
+                <LocationIcon />
+                <span>{area}</span>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
    MAIN PAGE
 ───────────────────────────────────────────────────────────────── */
 export default function Home() {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSpecialty, setSelectedSpecialty] = useState("residential");
   const [location, setLocation] = useState("");
+  const [language, setLanguage] = useState("");
+  const [experience, setExperience] = useState("");
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [minRating, setMinRating] = useState(false);
+  const [topRated, setTopRated] = useState(false);
   const [featuredSimsars, setFeaturedSimsars] = useState<typeof topSimsars>([]);
   const router = useRouter();
   const { isAuthenticated, user, logout, isLoading } = useAuth();
 
   // Fetch top simsars from API (only on client side)
   useEffect(() => {
-    // Only fetch if we're on the client and not authenticated
     if (typeof window === "undefined" || isLoading) return;
     
     const fetchTopSimsars = async () => {
@@ -305,7 +500,6 @@ export default function Home() {
         
         if (res.ok) {
           const data = await res.json();
-          // Transform API data to match our card format, take top 4
           if (Array.isArray(data) && data.length > 0) {
             const transformed = data.slice(0, 4).map((s: any) => ({
               id: s.id || String(Math.random()),
@@ -360,36 +554,52 @@ export default function Home() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const params = new URLSearchParams();
-    if (searchQuery) params.set("q", searchQuery);
-    if (location) params.set("location", location);
+    
+    if (selectedSpecialty === "agencies") {
+      params.set("view", "agencies");
+    } else if (selectedSpecialty) {
+      params.set("specialty", selectedSpecialty);
+    }
+    if (location) params.set("area", location);
+    if (language) params.set("language", language);
+    if (experience) params.set("experience", experience);
+    if (verifiedOnly) params.set("verified", "true");
+    if (minRating) params.set("minRating", "4");
+    if (topRated) params.set("sort", "rating");
+    
     router.push(`/directory?${params.toString()}`);
   };
+
+  const languageOptions = [
+    { value: "", label: "Any Language" },
+    ...LANGUAGES.map(l => ({ value: l, label: l })),
+  ];
 
   return (
     <div className="min-h-screen bg-white">
       {/* ─── NAVIGATION ─────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <header className="absolute left-0 right-0 top-0 z-50">
+        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-slate-800 to-slate-600 text-lg font-bold text-white shadow-sm">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-lg font-bold text-slate-800 shadow-lg">
               M
             </div>
             <div>
-              <span className="text-xl font-bold text-gray-900">MySimsar</span>
-              <span className="hidden text-xs text-gray-500 sm:block">Trusted Broker Ratings</span>
+              <span className="text-xl font-bold text-white">MySimsar</span>
+              <span className="hidden text-xs text-white/70 sm:block">Trusted Broker Ratings</span>
             </div>
           </Link>
 
           {/* Nav Links */}
           <nav className="hidden items-center gap-8 md:flex">
-            <Link href="#directory" className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">
+            <Link href="/directory" className="text-sm font-medium text-white/90 transition-colors hover:text-white">
               Find Simsars
             </Link>
-            <Link href="#how-it-works" className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">
+            <Link href="#how-it-works" className="text-sm font-medium text-white/90 transition-colors hover:text-white">
               How It Works
             </Link>
-            <Link href="#for-brokers" className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900">
+            <Link href="#for-brokers" className="text-sm font-medium text-white/90 transition-colors hover:text-white">
               For Brokers
             </Link>
           </nav>
@@ -398,30 +608,27 @@ export default function Home() {
           <div className="flex items-center gap-3">
             {isAuthenticated ? (
               <>
-                <span className="hidden text-sm text-gray-600 sm:block">
-                  Hi, {user?.name || user?.email?.split("@")[0]}
-                </span>
                 <Link
                   href="/dashboard"
-                  className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
+                  className="text-sm font-medium text-white/90 transition-colors hover:text-white"
                 >
                   Dashboard
                 </Link>
                 <button
                   onClick={logout}
-                  className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
+                  className="rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur transition-all hover:bg-white/20"
                 >
                   Sign Out
                 </button>
               </>
             ) : (
               <>
-                <Link href="/login" className="hidden text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 sm:block">
+                <Link href="/login" className="hidden text-sm font-medium text-white/90 transition-colors hover:text-white sm:block">
                   Sign In
                 </Link>
                 <Link
                   href="/register"
-                  className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-amber-600 hover:shadow"
+                  className="rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 shadow-lg transition-all hover:bg-gray-100"
                 >
                   Join
                 </Link>
@@ -431,82 +638,127 @@ export default function Home() {
         </div>
       </header>
 
-      {/* ─── HERO ───────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-slate-50 to-white">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-40">
-          <div className="absolute left-0 top-0 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-100 blur-3xl" />
-          <div className="absolute right-0 top-1/2 h-96 w-96 translate-x-1/2 rounded-full bg-slate-100 blur-3xl" />
+      {/* ─── HERO WITH DUBAI SKYLINE ─────────────────────────── */}
+      <section className="relative min-h-[600px] sm:min-h-[700px] overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <img
+            src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1920&h=1080&fit=crop&q=80"
+            alt="Dubai Skyline"
+            className="h-full w-full object-cover"
+          />
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
+        {/* Content */}
+        <div className="relative mx-auto max-w-7xl px-4 pt-32 pb-20 sm:px-6 sm:pt-40 lg:px-8">
           <div className="text-center">
-            {/* Badge */}
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-1.5 text-sm font-medium text-amber-800">
-              <span className="flex h-2 w-2 rounded-full bg-amber-500" />
-              UAE&apos;s #1 Broker Rating Platform
-            </div>
-
             {/* Headline */}
-            <h1 className="mx-auto max-w-4xl text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
-              Find Your Trusted{" "}
-              <span className="bg-gradient-to-r from-amber-500 to-amber-600 bg-clip-text text-transparent">
-                Simsar
-              </span>{" "}
-              in UAE &amp; GCC
+            <h1 className="mx-auto max-w-4xl text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
+              Find Your Perfect Real Estate Broker
             </h1>
 
             {/* Subheadline */}
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-600 sm:text-xl">
-              The first transparent platform to search, compare, and rate verified real estate brokers.
-              Make confident property decisions with authenticated reviews.
+            <p className="mx-auto mt-6 max-w-2xl text-lg text-white/80 sm:text-xl">
+              Connect with verified simsars across the UAE. Search by specialty, language, and experience.
             </p>
 
-            {/* Search Box */}
-            <form onSubmit={handleSearch} className="mx-auto mt-10 max-w-3xl px-4">
-              <div className="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-3 shadow-xl sm:flex-row sm:items-center">
-                <div className="flex flex-1 items-center gap-3 rounded-lg bg-gray-50 px-4 py-3">
-                  <SearchIcon />
-                  <input
-                    type="text"
-                    placeholder="Search by name, specialty..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-transparent text-gray-900 placeholder-gray-400 focus:outline-none"
+            {/* Category Tabs */}
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+              {SPECIALTIES.map((spec) => (
+                <button
+                  key={spec.id}
+                  onClick={() => setSelectedSpecialty(spec.id)}
+                  className={`flex items-center gap-2 rounded-full px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-semibold transition-all ${
+                    selectedSpecialty === spec.id
+                      ? "bg-white text-slate-900 shadow-lg"
+                      : "bg-white/10 text-white backdrop-blur-sm hover:bg-white/20"
+                  }`}
+                >
+                  <span>{spec.icon}</span>
+                  <span className="hidden sm:inline">{spec.label}</span>
+                  <span className="sm:hidden">{spec.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Search Bar */}
+            <form onSubmit={handleSearch} className="mx-auto mt-8 max-w-5xl px-4">
+              <div className="flex flex-col gap-3 rounded-2xl bg-white/10 p-3 backdrop-blur-md sm:flex-row sm:items-center lg:gap-2">
+                {/* Location Input */}
+                <AreaAutocomplete value={location} onChange={setLocation} />
+
+                {/* Language Dropdown */}
+                <div className="sm:w-48 lg:w-52">
+                  <Dropdown
+                    value={language}
+                    onChange={setLanguage}
+                    options={languageOptions}
+                    placeholder="Language"
+                    icon={<GlobeIcon />}
                   />
                 </div>
-                <div className="flex flex-1 items-center gap-3 rounded-lg bg-gray-50 px-4 py-3">
-                  <LocationIcon />
-                  <input
-                    type="text"
-                    placeholder="Location (e.g., Dubai Marina)"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    className="w-full bg-transparent text-gray-900 placeholder-gray-400 focus:outline-none"
+
+                {/* Experience Dropdown */}
+                <div className="sm:w-48 lg:w-52">
+                  <Dropdown
+                    value={experience}
+                    onChange={setExperience}
+                    options={EXPERIENCE_LEVELS}
+                    placeholder="Experience"
+                    icon={<BriefcaseIcon />}
                   />
                 </div>
+
+                {/* Search Button */}
                 <button 
                   type="submit"
-                  className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 sm:px-8 py-3 sm:py-3.5 font-semibold text-white transition-all hover:bg-slate-800 w-full sm:w-auto"
+                  className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-red-500 to-rose-500 px-8 py-3.5 font-semibold text-white shadow-lg transition-all hover:from-red-600 hover:to-rose-600 sm:px-10"
                 >
                   <SearchIcon />
-                  Search
+                  <span>Search</span>
                 </button>
               </div>
             </form>
 
-            {/* Quick Links */}
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-              <span className="text-sm text-gray-500">Popular:</span>
-              {areas.slice(0, 5).map((area) => (
-                <Link
-                  key={area}
-                  href={`/directory?location=${encodeURIComponent(area)}`}
-                  className="rounded-full border border-gray-200 bg-white px-4 py-1.5 text-sm text-gray-600 transition-all hover:border-amber-300 hover:bg-amber-50"
-                >
-                  {area}
-                </Link>
-              ))}
+            {/* Quick Filter Pills */}
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setVerifiedOnly(!verifiedOnly)}
+                className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                  verifiedOnly
+                    ? "bg-emerald-500 text-white"
+                    : "bg-white/10 text-white/90 hover:bg-white/20"
+                }`}
+              >
+                <VerifiedIcon />
+                Verified Only
+              </button>
+              <button
+                type="button"
+                onClick={() => setMinRating(!minRating)}
+                className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                  minRating
+                    ? "bg-amber-500 text-white"
+                    : "bg-white/10 text-white/90 hover:bg-white/20"
+                }`}
+              >
+                <StarIcon filled />
+                4+ Rating
+              </button>
+              <button
+                type="button"
+                onClick={() => setTopRated(!topRated)}
+                className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                  topRated
+                    ? "bg-purple-500 text-white"
+                    : "bg-white/10 text-white/90 hover:bg-white/20"
+                }`}
+              >
+                🏆 Top Rated
+              </button>
             </div>
           </div>
         </div>

@@ -50,15 +50,30 @@ const areaOptions = [
   "Dubai Marina",
   "Downtown Dubai",
   "Palm Jumeirah",
-  "JVC",
+  "JVC (Jumeirah Village Circle)",
   "Business Bay",
   "JBR",
   "DIFC",
-  "Abu Dhabi",
+  "Dubai Hills",
+  "Arabian Ranches",
   "JLT",
+  "Abu Dhabi",
+  "Sharjah",
 ];
 
-const languageOptions = ["All Languages", "English", "Arabic", "French", "Hindi", "Spanish", "Mandarin"];
+const languageOptions = [
+  "All Languages",
+  "English",
+  "Arabic",
+  "Hindi",
+  "Urdu",
+  "Russian",
+  "Mandarin",
+  "French",
+  "Tagalog",
+  "Spanish",
+  "Portuguese",
+];
 
 /* Icons */
 const SearchIcon = () => (
@@ -172,11 +187,25 @@ function DirectoryContent() {
   const searchParams = useSearchParams();
   const { isAuthenticated, user, logout } = useAuth();
 
-  const [viewMode, setViewMode] = useState<"all" | "individuals" | "agencies">("all");
+  // Initialize from URL params
+  const initialView = searchParams.get("view") === "agencies" ? "agencies" : "all";
+  const initialArea = searchParams.get("area") || searchParams.get("location") || "All Areas";
+  const initialLanguage = searchParams.get("language") || "All Languages";
+  const initialExperience = searchParams.get("experience") || "";
+  const initialVerified = searchParams.get("verified") === "true";
+  const initialMinRating = searchParams.get("minRating") ? parseFloat(searchParams.get("minRating")!) : 0;
+  const initialSort = searchParams.get("sort") || "rating";
+  const initialSpecialty = searchParams.get("specialty") || "";
+
+  const [viewMode, setViewMode] = useState<"all" | "individuals" | "agencies">(initialView as any);
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
-  const [selectedArea, setSelectedArea] = useState(searchParams.get("location") || "All Areas");
-  const [selectedLanguage, setSelectedLanguage] = useState("All Languages");
-  const [sortBy, setSortBy] = useState("rating");
+  const [selectedArea, setSelectedArea] = useState(initialArea);
+  const [selectedLanguage, setSelectedLanguage] = useState(initialLanguage);
+  const [selectedExperience, setSelectedExperience] = useState(initialExperience);
+  const [selectedSpecialty, setSelectedSpecialty] = useState(initialSpecialty);
+  const [verifiedOnly, setVerifiedOnly] = useState(initialVerified);
+  const [minRating, setMinRating] = useState(initialMinRating);
+  const [sortBy, setSortBy] = useState(initialSort);
   
   const [simsars, setSimsars] = useState<Simsar[]>([]);
   const [agencies, setAgencies] = useState<Agency[]>([]);
@@ -267,11 +296,29 @@ function DirectoryContent() {
     const matchesLanguage = selectedLanguage === "All Languages" || 
       simsar.languages.includes(selectedLanguage);
     
+    const matchesArea = selectedArea === "All Areas" ||
+      (simsar.companyName || "").toLowerCase().includes(selectedArea.toLowerCase());
+    
     const matchesType = viewMode === "all" || 
       (viewMode === "individuals" && simsar.simsarType === "INDIVIDUAL") ||
       (viewMode === "agencies" && simsar.simsarType === "AGENCY_BROKER");
 
-    return matchesSearch && matchesLanguage && matchesType;
+    // Experience filter
+    let matchesExperience = true;
+    if (selectedExperience) {
+      const years = simsar.experienceYears || 0;
+      if (selectedExperience === "1-5") matchesExperience = years >= 1 && years <= 5;
+      else if (selectedExperience === "5-10") matchesExperience = years > 5 && years <= 10;
+      else if (selectedExperience === "10+") matchesExperience = years > 10;
+    }
+
+    // Verified filter
+    const matchesVerified = !verifiedOnly || simsar.verificationStatus === "VERIFIED";
+
+    // Min rating filter
+    const matchesRating = simsar.rating >= minRating;
+
+    return matchesSearch && matchesLanguage && matchesArea && matchesType && matchesExperience && matchesVerified && matchesRating;
   });
 
   // Filter agencies
@@ -455,50 +502,105 @@ function DirectoryContent() {
 
         {/* Search & Filters */}
         <div className="mb-8 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-            {/* Search */}
-            <div className="flex flex-1 items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-4 py-2">
-              <SearchIcon />
-              <input
-                type="text"
-                placeholder="Search by name or company..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 bg-transparent text-gray-900 placeholder-gray-400 focus:outline-none"
-              />
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+              {/* Search */}
+              <div className="flex flex-1 items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-4 py-2">
+                <SearchIcon />
+                <input
+                  type="text"
+                  placeholder="Search by name or company..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-1 bg-transparent text-gray-900 placeholder-gray-400 focus:outline-none"
+                />
+              </div>
+
+              {/* Filters */}
+              <div className="flex flex-wrap gap-2 sm:gap-3">
+                <select
+                  value={selectedArea}
+                  onChange={(e) => setSelectedArea(e.target.value)}
+                  className="rounded-lg border border-gray-200 bg-white px-3 sm:px-4 py-2 text-sm focus:border-amber-500 focus:outline-none flex-1 sm:flex-none min-w-0"
+                >
+                  {areaOptions.map((area) => (
+                    <option key={area} value={area}>{area}</option>
+                  ))}
+                </select>
+
+                <select
+                  value={selectedLanguage}
+                  onChange={(e) => setSelectedLanguage(e.target.value)}
+                  className="rounded-lg border border-gray-200 bg-white px-3 sm:px-4 py-2 text-sm focus:border-amber-500 focus:outline-none flex-1 sm:flex-none min-w-0"
+                >
+                  {languageOptions.map((lang) => (
+                    <option key={lang} value={lang}>{lang}</option>
+                  ))}
+                </select>
+
+                <select
+                  value={selectedExperience}
+                  onChange={(e) => setSelectedExperience(e.target.value)}
+                  className="rounded-lg border border-gray-200 bg-white px-3 sm:px-4 py-2 text-sm focus:border-amber-500 focus:outline-none flex-1 sm:flex-none min-w-0"
+                >
+                  <option value="">Any Experience</option>
+                  <option value="1-5">1-5 years</option>
+                  <option value="5-10">5-10 years</option>
+                  <option value="10+">10+ years</option>
+                </select>
+
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="rounded-lg border border-gray-200 bg-white px-3 sm:px-4 py-2 text-sm focus:border-amber-500 focus:outline-none flex-1 sm:flex-none min-w-0"
+                >
+                  <option value="rating">Sort: Rating</option>
+                  <option value="reviews">Sort: Reviews</option>
+                  <option value="experience">Sort: Experience</option>
+                </select>
+              </div>
             </div>
 
-            {/* Filters */}
-            <div className="flex flex-wrap gap-2 sm:gap-3">
-              <select
-                value={selectedArea}
-                onChange={(e) => setSelectedArea(e.target.value)}
-                className="rounded-lg border border-gray-200 bg-white px-3 sm:px-4 py-2 text-sm focus:border-amber-500 focus:outline-none flex-1 sm:flex-none min-w-0"
+            {/* Quick Filters */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm text-gray-500">Quick filters:</span>
+              <button
+                onClick={() => setVerifiedOnly(!verifiedOnly)}
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-all ${
+                  verifiedOnly
+                    ? "bg-emerald-500 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
               >
-                {areaOptions.map((area) => (
-                  <option key={area} value={area}>{area}</option>
-                ))}
-              </select>
-
-              <select
-                value={selectedLanguage}
-                onChange={(e) => setSelectedLanguage(e.target.value)}
-                className="rounded-lg border border-gray-200 bg-white px-3 sm:px-4 py-2 text-sm focus:border-amber-500 focus:outline-none flex-1 sm:flex-none min-w-0"
+                <VerifiedIcon />
+                Verified Only
+              </button>
+              <button
+                onClick={() => setMinRating(minRating === 4 ? 0 : 4)}
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-all ${
+                  minRating === 4
+                    ? "bg-amber-500 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
               >
-                {languageOptions.map((lang) => (
-                  <option key={lang} value={lang}>{lang}</option>
-                ))}
-              </select>
-
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="rounded-lg border border-gray-200 bg-white px-3 sm:px-4 py-2 text-sm focus:border-amber-500 focus:outline-none flex-1 sm:flex-none min-w-0"
-              >
-                <option value="rating">Sort: Rating</option>
-                <option value="reviews">Sort: Reviews</option>
-                <option value="experience">Sort: Experience</option>
-              </select>
+                <StarIcon filled />
+                4+ Rating
+              </button>
+              {(verifiedOnly || minRating > 0 || selectedArea !== "All Areas" || selectedLanguage !== "All Languages" || selectedExperience) && (
+                <button
+                  onClick={() => {
+                    setVerifiedOnly(false);
+                    setMinRating(0);
+                    setSelectedArea("All Areas");
+                    setSelectedLanguage("All Languages");
+                    setSelectedExperience("");
+                    setSearchQuery("");
+                  }}
+                  className="text-sm font-medium text-red-600 hover:text-red-700"
+                >
+                  Clear All
+                </button>
+              )}
             </div>
           </div>
         </div>
