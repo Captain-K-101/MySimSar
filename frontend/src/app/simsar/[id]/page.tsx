@@ -33,6 +33,8 @@ interface Simsar {
   reraId: string | null;
   experienceYears: number | null;
   languages: string[];
+  specialties: string[];
+  areasOfOperation: string[];
   whatsappNumber: string | null;
   verificationStatus: string;
   tierHint: string | null;
@@ -173,21 +175,33 @@ const PhoneIcon = ({ className = "h-5 w-5" }: { className?: string }) => (
   </svg>
 );
 
-const CalendarIcon = ({ className = "h-5 w-5" }: { className?: string }) => (
+const EmailIcon = ({ className = "h-5 w-5" }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
   </svg>
 );
 
-const BadgeIcon = ({ className = "h-5 w-5" }: { className?: string }) => (
+const ClockIcon = ({ className = "h-5 w-5" }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
   </svg>
 );
 
 const UserIcon = ({ className = "h-5 w-5" }: { className?: string }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+  </svg>
+);
+
+const HomeIcon = ({ className = "h-5 w-5" }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+  </svg>
+);
+
+const ChevronRightSmallIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
   </svg>
 );
 
@@ -278,7 +292,7 @@ function PropertyDetailModal({ property, onClose }: { property: PortfolioItem; o
               <div key={stat.label} className="rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 p-4 text-center">
                 <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
                 <p className="text-xs font-medium text-gray-500">{stat.label}</p>
-              </div>
+            </div>
             ))}
           </div>
 
@@ -291,21 +305,7 @@ function PropertyDetailModal({ property, onClose }: { property: PortfolioItem; o
   );
 }
 
-/* ─── COMPONENTS ──────────────────────────────────────────── */
-function TierBadge({ tier }: { tier: string }) {
-  const colors: Record<string, string> = {
-    Platinum: "bg-gradient-to-r from-slate-600 to-slate-400 text-white shadow-md",
-    Gold: "bg-gradient-to-r from-amber-500 to-yellow-400 text-white shadow-md",
-    Silver: "bg-gradient-to-r from-gray-400 to-gray-300 text-gray-800",
-    Bronze: "bg-gradient-to-r from-orange-600 to-orange-400 text-white shadow-md",
-  };
-  return (
-    <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-bold ${colors[tier] || colors.Bronze}`}>
-      {tier}
-    </span>
-  );
-}
-
+/* ─── PORTFOLIO CARD ──────────────────────────────────────── */
 function PortfolioCard({ item, onClick }: { item: PortfolioItem; onClick: () => void }) {
   const statusColors = {
     sold: "bg-emerald-500 text-white",
@@ -315,27 +315,30 @@ function PortfolioCard({ item, onClick }: { item: PortfolioItem; onClick: () => 
   const typeLabels = { sale: "Sale", rental: "Rental", "off-plan": "Off-Plan" };
 
   return (
-    <div className="group cursor-pointer overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:shadow-xl hover:border-amber-200" onClick={onClick}>
-      <div className="relative h-44 overflow-hidden">
+    <div className="group cursor-pointer overflow-hidden rounded-xl bg-white border border-gray-200 transition-all duration-300 hover:shadow-xl hover:border-gray-300" onClick={onClick}>
+      <div className="relative h-48 overflow-hidden">
         <img 
           src={item.images[0] || "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&h=400&fit=crop"} 
           alt={item.title} 
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
           onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&h=400&fit=crop"; }}
         />
-        {item.images.length > 1 && (
-          <div className="absolute bottom-2 right-2 rounded-full bg-black/60 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">
-            +{item.images.length - 1} photos
-          </div>
-        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         <div className="absolute left-3 top-3 flex gap-2">
-          <span className="rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-gray-800 backdrop-blur-sm">{typeLabels[item.type]}</span>
-          <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusColors[item.status]}`}>{item.status.charAt(0).toUpperCase() + item.status.slice(1)}</span>
+          <span className="rounded-md bg-white px-2 py-1 text-xs font-semibold text-gray-800">{typeLabels[item.type]}</span>
+          <span className={`rounded-md px-2 py-1 text-xs font-semibold ${statusColors[item.status]}`}>{item.status.charAt(0).toUpperCase() + item.status.slice(1)}</span>
         </div>
-        <div className="absolute bottom-3 left-3">
-          <p className="text-xl font-bold text-white drop-shadow-lg">{item.price}</p>
+        <div className="absolute bottom-3 left-3 right-3">
+          <p className="text-xl font-bold text-white">{item.price}</p>
         </div>
+        {item.images.length > 1 && (
+          <div className="absolute bottom-3 right-3 flex items-center gap-1 rounded bg-black/60 px-2 py-1 text-xs text-white">
+            <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            {item.images.length}
+          </div>
+        )}
       </div>
       <div className="p-4">
         <h4 className="font-semibold text-gray-900 line-clamp-1">{item.title}</h4>
@@ -343,53 +346,57 @@ function PortfolioCard({ item, onClick }: { item: PortfolioItem; onClick: () => 
           <LocationIcon className="h-4 w-4" />
           {item.location}
         </p>
-        <div className="mt-3 flex items-center gap-4 text-sm text-gray-600">
-          <span className="flex items-center gap-1"><span className="font-semibold">{item.bedrooms}</span> Beds</span>
-          <span className="flex items-center gap-1"><span className="font-semibold">{item.bathrooms}</span> Baths</span>
-          <span className="font-medium text-amber-600">{item.area}</span>
+        <div className="mt-3 flex items-center gap-3 text-sm text-gray-600 border-t border-gray-100 pt-3">
+          <span className="flex items-center gap-1">
+            <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            {item.bedrooms} Beds
+    </span>
+          <span className="flex items-center gap-1">
+            <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+            </svg>
+            {item.bathrooms} Baths
+          </span>
+          <span className="ml-auto font-medium text-gray-900">{item.area}</span>
         </div>
       </div>
     </div>
   );
 }
 
-/* ─── REVIEW CARD WITH AVATAR ─────────────────────────────── */
+/* ─── REVIEW CARD ─────────────────────────────────────────── */
 function ReviewCard({ review }: { review: Review }) {
   const initials = review.author.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
-  
+
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all hover:shadow-md">
+    <div className="rounded-xl border border-gray-200 bg-white p-5">
       <div className="flex items-start gap-4">
-        {/* Avatar */}
-        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-slate-700 to-slate-500 text-sm font-bold text-white">
+        <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-slate-600 to-slate-400 text-sm font-bold text-white">
           {initials}
-        </div>
+          </div>
         
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-semibold text-gray-900">{review.author}</span>
-                {review.verified && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
-                    <VerifiedIcon className="h-3 w-3" />
-                    Verified
-                  </span>
-                )}
-              </div>
-              <p className="mt-0.5 text-sm text-gray-500">
-                {new Date(review.createdAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-              </p>
-            </div>
-            
-            {/* Rating */}
-            <div className="flex items-center gap-1 rounded-lg bg-amber-50 px-2 py-1">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-semibold text-gray-900">{review.author}</span>
+              {review.verified && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                  <VerifiedIcon className="h-3 w-3" />
+                  Verified
+                </span>
+              )}
+        </div>
+            <div className="flex items-center gap-0.5">
               {[1, 2, 3, 4, 5].map((star) => (
                 <StarIcon key={star} filled={star <= review.rating} className="h-4 w-4" />
               ))}
-            </div>
-          </div>
-          
+        </div>
+      </div>
+          <p className="mt-0.5 text-sm text-gray-500">
+            {new Date(review.createdAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+          </p>
           <p className="mt-3 text-gray-600 leading-relaxed">{review.text}</p>
         </div>
       </div>
@@ -426,7 +433,15 @@ export default function SimsarProfilePage() {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/simsars/${params.id}`);
         if (res.ok) {
-          setSimsar(await res.json());
+          const data = await res.json();
+          // Parse JSON arrays if they come as strings
+          if (typeof data.specialties === 'string') {
+            try { data.specialties = JSON.parse(data.specialties); } catch { data.specialties = []; }
+          }
+          if (typeof data.areasOfOperation === 'string') {
+            try { data.areasOfOperation = JSON.parse(data.areasOfOperation); } catch { data.areasOfOperation = []; }
+          }
+          setSimsar(data);
         } else {
           setSimsar(null);
         }
@@ -453,6 +468,11 @@ export default function SimsarProfilePage() {
 
   const portfolio = mockPortfolio;
   const filteredPortfolio = portfolioFilter === "all" ? portfolio : portfolio.filter(item => item.type === portfolioFilter);
+
+  // Calculate stats
+  const salesCount = portfolio.filter(p => p.type === "sale").length;
+  const rentalsCount = portfolio.filter(p => p.type === "rental").length;
+  const verifiedTransactions = simsar?.reviews.filter(r => r.verified).length || 0;
 
   const handleWorkWithSimsar = () => {
     if (!isAuthenticated) {
@@ -543,15 +563,20 @@ export default function SimsarProfilePage() {
         <p className="mt-2 text-gray-600">The broker you&apos;re looking for doesn&apos;t exist or has been removed.</p>
         <Link href="/directory" className="mt-6 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white hover:bg-slate-800">
           Browse Directory
-        </Link>
+          </Link>
       </div>
     );
   }
 
+  // Format experience display
+  const experienceDisplay = simsar.experienceYears 
+    ? (simsar.experienceYears >= 10 ? `${simsar.experienceYears}+` : `${simsar.experienceYears}`)
+    : null;
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-100">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+      <header className="sticky top-0 z-50 border-b border-gray-200 bg-white">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-slate-800 to-slate-600 text-lg font-bold text-white shadow-sm">M</div>
@@ -571,288 +596,369 @@ export default function SimsarProfilePage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Profile Header */}
-        <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
-          {/* Hero Banner */}
-          <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-6 sm:px-10 py-10 sm:py-14">
-            {/* Background pattern */}
-            <div className="absolute inset-0 opacity-10">
-              <div className="absolute inset-0" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }}></div>
-            </div>
-
-            <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-              {/* Profile Info */}
-              <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-end">
-                {/* Photo */}
-                <div className="relative">
-                  <img
-                    src={simsar.photoUrl || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop"}
-                    alt={simsar.name}
-                    className="h-28 w-28 sm:h-36 sm:w-36 rounded-2xl border-4 border-white object-cover shadow-2xl"
-                    onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop"; }}
-                  />
-                  {simsar.verificationStatus === "VERIFIED" && (
-                    <div className="absolute -bottom-2 -right-2 rounded-full bg-white p-1.5 shadow-lg">
-                      <VerifiedIcon className="h-6 w-6" />
-                    </div>
-                  )}
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Main Content */}
+          <div className="space-y-6 lg:col-span-2">
+            {/* Profile Header Card - PropertyFinder Style */}
+            <div className="rounded-xl border border-gray-200 bg-white p-6">
+              {/* Tier Badge */}
+              {simsar.tierHint && (
+                <div className="mb-4">
+                  <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold ${
+                    simsar.tierHint === "Platinum" ? "bg-gradient-to-r from-slate-700 to-slate-500 text-white" :
+                    simsar.tierHint === "Gold" ? "bg-gradient-to-r from-amber-500 to-yellow-400 text-white" :
+                    simsar.tierHint === "Silver" ? "bg-gradient-to-r from-gray-400 to-gray-300 text-gray-800" :
+                    "bg-gradient-to-r from-orange-500 to-orange-400 text-white"
+                  }`}>
+                    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z" clipRule="evenodd" />
+                    </svg>
+                    {simsar.tierHint} Agent
+                  </span>
                 </div>
+              )}
 
-                {/* Details */}
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <h1 className="text-3xl sm:text-4xl font-bold text-white">{simsar.name}</h1>
-                    {simsar.tierHint && <TierBadge tier={simsar.tierHint} />}
+              <div className="flex flex-col gap-5 sm:flex-row">
+                {/* Profile Photo */}
+                <div className="relative flex-shrink-0">
+                <img
+                  src={simsar.photoUrl || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop"}
+                  alt={simsar.name}
+                    className="h-28 w-28 sm:h-32 sm:w-32 rounded-xl object-cover border border-gray-200"
+                    onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop"; }}
+                />
+                {simsar.verificationStatus === "VERIFIED" && (
+                    <div className="absolute -bottom-1 -right-1 rounded-full bg-white p-0.5 shadow">
+                      <VerifiedIcon className="h-5 w-5" />
                   </div>
+                )}
+              </div>
 
-                  {simsar.simsarType === "AGENCY_BROKER" && simsar.agency && (
-                    <Link
-                      href={`/agency/${simsar.agency.id}`}
-                      className="mt-2 inline-flex items-center gap-2 rounded-full bg-purple-500/20 px-4 py-1.5 text-sm font-medium text-purple-200 transition-colors hover:bg-purple-500/30"
-                    >
-                      <BuildingIcon className="h-4 w-4" />
-                      {simsar.agency.name}
-                    </Link>
-                  )}
-
-                  <p className="mt-2 text-slate-300">
-                    {simsar.companyName || "Independent Broker"} • {simsar.experienceYears ? `${simsar.experienceYears} years experience` : "New on platform"}
-                  </p>
-
-                  <div className="mt-4 flex flex-wrap items-center gap-4">
-                    <div className="flex items-center gap-1 rounded-lg bg-white/10 backdrop-blur-sm px-3 py-2">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <StarIcon key={star} filled={star <= Math.round(simsar.rating)} className="h-5 w-5" />
-                      ))}
-                      <span className="ml-2 text-lg font-bold text-white">{simsar.rating.toFixed(1)}</span>
-                      <span className="text-slate-400">({simsar.reviewCount})</span>
-                    </div>
-                    <div className="flex items-center gap-2 rounded-lg bg-amber-500/20 backdrop-blur-sm px-3 py-2">
-                      <span className="text-sm text-amber-200">MySimsar Score</span>
-                      <span className="text-xl font-bold text-amber-400">{simsar.score}</span>
-                    </div>
+                {/* Profile Info */}
+              <div className="flex-1">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h1 className="text-2xl font-bold text-gray-900">{simsar.name}</h1>
+                      
+                      {/* Rating */}
+                      <div className="mt-2 flex items-center gap-2">
+                        <div className="flex items-center gap-0.5">
+                          <StarIcon filled className="h-5 w-5" />
+                          <span className="text-lg font-bold text-gray-900">{simsar.rating.toFixed(1)}</span>
+                  </div>
+                        <span className="text-gray-500">({simsar.reviewCount} ratings)</span>
                   </div>
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-wrap gap-3">
+                  {/* Info Pills */}
+                  <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600">
+                    {simsar.languages.length > 0 && (
+                      <span className="flex items-center gap-1.5">
+                        <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                        </svg>
+                        {simsar.languages.join(", ")}
+                      </span>
+                    )}
+                    {experienceDisplay && (
+                      <span className="flex items-center gap-1.5">
+                        <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        {experienceDisplay} Years Experience
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Response Time */}
+                  <div className="mt-3 flex items-center gap-1.5 text-sm text-emerald-600">
+                    <ClockIcon className="h-4 w-4" />
+                    <span>Usually responds within 5 minutes</span>
+                  </div>
+
+                  {/* CTA Buttons */}
+                  <div className="mt-5 flex flex-wrap gap-3">
                 {simsar.whatsappNumber && (
                   <a
                     href={`https://wa.me/${simsar.whatsappNumber.replace(/[^0-9]/g, "")}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 rounded-xl bg-emerald-500 px-5 py-3 font-semibold text-white transition-all hover:bg-emerald-600 hover:shadow-lg hover:scale-105"
+                        className="flex items-center gap-2 rounded-lg bg-emerald-500 px-5 py-2.5 font-semibold text-white transition-all hover:bg-emerald-600"
                   >
-                    <WhatsAppIcon className="h-5 w-5" />
+                        <WhatsAppIcon className="h-5 w-5" />
                     WhatsApp
                   </a>
                 )}
                 <button
-                  onClick={() => {
-                    if (!isAuthenticated) { router.push(`/login?redirect=/simsar/${params.id}`); return; }
-                    if (simsar.verificationStatus !== "VERIFIED") return;
-                    setConversationId(undefined);
-                    setShowChatModal(true);
-                  }}
-                  disabled={simsar.verificationStatus !== "VERIFIED"}
-                  className="flex items-center gap-2 rounded-xl bg-white/10 backdrop-blur-sm px-5 py-3 font-semibold text-white transition-all hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={() => setActiveSection("portfolio")}
+                      className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 font-semibold text-gray-700 transition-all hover:bg-gray-50"
                 >
-                  <ChatIcon className="h-5 w-5" />
-                  Message
+                      <HomeIcon className="h-5 w-5" />
+                      View Properties
                 </button>
+                  </div>
               </div>
             </div>
           </div>
 
-          {/* Tabs */}
-          <div className="border-b border-gray-100 bg-white px-6 sm:px-10">
-            <nav className="flex gap-1 overflow-x-auto">
+            {/* Agency Card (if part of agency) */}
+            {simsar.simsarType === "AGENCY_BROKER" && simsar.agency && (
+              <Link
+                href={`/agency/${simsar.agency.id}`}
+                className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 transition-all hover:border-gray-300 hover:shadow-sm"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-gray-500">Brokerage</span>
+                  {simsar.agency.logoUrl ? (
+                    <img src={simsar.agency.logoUrl} alt={simsar.agency.name} className="h-8 w-8 rounded-lg object-cover" onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=100&h=100&fit=crop"; }} />
+                  ) : (
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-700 text-sm font-bold text-white">
+                      {simsar.agency.name.charAt(0)}
+                    </div>
+                  )}
+                  <span className="font-semibold text-gray-900">{simsar.agency.name}</span>
+                </div>
+                <ChevronRightSmallIcon className="h-5 w-5 text-gray-400" />
+              </Link>
+            )}
+
+            {/* Stats Row */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
+                <p className="text-2xl font-bold text-gray-900">{salesCount}</p>
+                <p className="text-sm text-gray-500">Properties for Sale</p>
+              </div>
+              <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
+                <p className="text-2xl font-bold text-gray-900">{rentalsCount}</p>
+                <p className="text-sm text-gray-500">Properties for Rent</p>
+              </div>
+              <div className="rounded-xl border border-gray-200 bg-white p-4 text-center">
+                <p className="text-2xl font-bold text-gray-900">{verifiedTransactions}</p>
+                <p className="text-sm text-gray-500">Verified Transactions</p>
+              </div>
+            </div>
+
+            {/* Tabs */}
+            <div className="rounded-xl border border-gray-200 bg-white">
+              <div className="border-b border-gray-200 px-4">
+                <nav className="flex gap-6">
               {[
-                { key: "about", label: "About", count: null },
-                { key: "portfolio", label: "Portfolio", count: portfolio.length },
-                { key: "reviews", label: "Reviews", count: simsar.reviewCount },
+                { key: "about", label: "About" },
+                    { key: "portfolio", label: "Portfolio", count: portfolio.length },
+                    { key: "reviews", label: "Reviews", count: simsar.reviewCount },
               ].map((tab) => (
                 <button
                   key={tab.key}
                   onClick={() => setActiveSection(tab.key as typeof activeSection)}
-                  className={`relative whitespace-nowrap px-4 py-4 text-sm font-medium transition-colors ${
+                      className={`relative py-4 text-sm font-medium transition-colors ${
                     activeSection === tab.key
-                      ? "text-amber-600"
-                      : "text-gray-500 hover:text-gray-900"
+                          ? "text-amber-600"
+                          : "text-gray-500 hover:text-gray-900"
                   }`}
                 >
                   {tab.label}
-                  {tab.count !== null && (
-                    <span className={`ml-1.5 rounded-full px-2 py-0.5 text-xs ${activeSection === tab.key ? "bg-amber-100 text-amber-700" : "bg-gray-100 text-gray-600"}`}>
-                      {tab.count}
-                    </span>
-                  )}
-                  {activeSection === tab.key && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-500 rounded-full" />
-                  )}
+                      {tab.count !== undefined && (
+                        <span className="ml-1.5 text-gray-400">({tab.count})</span>
+                      )}
+                      {activeSection === tab.key && (
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-500" />
+                      )}
                 </button>
               ))}
             </nav>
           </div>
 
-          {/* Content Grid */}
-          <div className="grid gap-8 p-6 sm:p-10 lg:grid-cols-3">
-            {/* Main Content */}
-            <div className="space-y-8 lg:col-span-2">
+              <div className="p-5">
               {activeSection === "about" && (
-                <>
-                  <section className="rounded-2xl bg-gray-50 p-6">
-                    <h2 className="text-xl font-bold text-gray-900">About</h2>
-                    <p className="mt-4 text-gray-600 leading-relaxed">{simsar.bio || "No bio available yet."}</p>
-                  </section>
+                  <div className="space-y-6">
+                    {/* Bio */}
+                    <div>
+                      <h3 className="font-semibold text-gray-900">About</h3>
+                      <p className="mt-2 text-gray-600 leading-relaxed">{simsar.bio || "No bio available yet."}</p>
+                    </div>
 
+                    {/* Specialties */}
+                    {simsar.specialties && simsar.specialties.length > 0 && (
+                      <div>
+                        <h3 className="font-semibold text-gray-900">Specialties</h3>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {simsar.specialties.map((specialty) => (
+                            <span key={specialty} className="rounded-full bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-700 border border-amber-100">
+                              {specialty}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Areas of Operation */}
+                    {simsar.areasOfOperation && simsar.areasOfOperation.length > 0 && (
+                      <div>
+                        <h3 className="font-semibold text-gray-900">Areas of Operation</h3>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {simsar.areasOfOperation.map((area) => (
+                            <span key={area} className="rounded-full bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700 border border-blue-100">
+                              {area}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Languages */}
                   {simsar.languages.length > 0 && (
-                    <section>
-                      <h2 className="text-xl font-bold text-gray-900">Languages</h2>
-                      <div className="mt-4 flex flex-wrap gap-2">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">Languages</h3>
+                        <div className="mt-2 flex flex-wrap gap-2">
                         {simsar.languages.map((lang) => (
-                          <span key={lang} className="rounded-full bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 border border-blue-100">{lang}</span>
+                            <span key={lang} className="rounded-full bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700">
+                              {lang}
+                            </span>
                         ))}
                       </div>
-                    </section>
+                      </div>
                   )}
-                </>
+                  </div>
               )}
 
               {activeSection === "portfolio" && (
-                <section>
-                  <div className="flex items-center justify-between flex-wrap gap-4">
-                    <h2 className="text-xl font-bold text-gray-900">Past Transactions</h2>
+                  <div>
+                    <div className="flex items-center justify-between flex-wrap gap-4 mb-5">
+                      <h3 className="font-semibold text-gray-900">Past Transactions</h3>
                     <div className="flex gap-2">
-                      {(["all", "sale", "rental", "off-plan"] as const).map((f) => (
+                        {(["all", "sale", "rental", "off-plan"] as const).map((f) => (
                         <button
                           key={f}
-                          onClick={() => setPortfolioFilter(f)}
-                          className={`rounded-xl px-4 py-2 text-sm font-medium transition-all ${
-                            portfolioFilter === f ? "bg-amber-500 text-white shadow-md" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            onClick={() => setPortfolioFilter(f)}
+                            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
+                            portfolioFilter === f ? "bg-amber-500 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                           }`}
                         >
-                          {f === "all" ? "All" : f === "off-plan" ? "Off-Plan" : f.charAt(0).toUpperCase() + f.slice(1)}
+                            {f === "all" ? "All" : f === "off-plan" ? "Off-Plan" : f.charAt(0).toUpperCase() + f.slice(1)}
                         </button>
                       ))}
                     </div>
                   </div>
-                  <div className="mt-6 grid gap-5 sm:grid-cols-2">
+                    <div className="grid gap-4 sm:grid-cols-2">
                     {filteredPortfolio.map((item) => (
                       <PortfolioCard key={item.id} item={item} onClick={() => setSelectedProperty(item)} />
                     ))}
                   </div>
-                </section>
+                  </div>
               )}
 
               {activeSection === "reviews" && (
-                <section>
-                  <h2 className="text-xl font-bold text-gray-900">Client Reviews</h2>
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-4">Client Reviews</h3>
                   {simsar.reviews.length > 0 ? (
-                    <div className="mt-6 space-y-4">
+                      <div className="space-y-4">
                       {simsar.reviews.map((review) => (
-                        <ReviewCard key={review.id} review={review} />
+                          <ReviewCard key={review.id} review={review} />
                       ))}
                     </div>
                   ) : (
-                    <div className="mt-8 rounded-2xl border-2 border-dashed border-gray-200 p-12 text-center">
-                      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gray-100">
-                        <StarIcon filled={false} className="h-7 w-7 text-gray-400" />
-                      </div>
-                      <h3 className="mt-4 font-semibold text-gray-900">No reviews yet</h3>
-                      <p className="mt-1 text-sm text-gray-500">Be the first to leave a review!</p>
+                      <div className="rounded-xl border-2 border-dashed border-gray-200 p-10 text-center">
+                        <StarIcon filled={false} className="mx-auto h-10 w-10 text-gray-300" />
+                        <h4 className="mt-3 font-semibold text-gray-900">No reviews yet</h4>
+                        <p className="mt-1 text-sm text-gray-500">Be the first to leave a review!</p>
                     </div>
-                  )}
-                </section>
-              )}
-            </div>
+                    )}
+                      </div>
+                    )}
+                    </div>
+                  </div>
+              </div>
 
-            {/* Sidebar */}
-            <div className="space-y-6">
+          {/* Sidebar */}
+          <div className="space-y-6">
               {/* Contact Card */}
-              <div className="rounded-2xl border-2 border-amber-100 bg-gradient-to-br from-amber-50 to-orange-50 p-6">
-                <h3 className="text-lg font-bold text-gray-900">Contact {simsar.name.split(" ")[0]}</h3>
+            <div className="rounded-xl border border-gray-200 bg-white p-5">
+                <h3 className="font-semibold text-gray-900">Contact {simsar.name.split(" ")[0]}</h3>
                 <div className="mt-4 space-y-3">
                   {simsar.whatsappNumber && (
                     <a
                       href={`https://wa.me/${simsar.whatsappNumber.replace(/[^0-9]/g, "")}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3.5 font-semibold text-white transition-all hover:bg-emerald-600 hover:shadow-lg"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-500 px-4 py-3 font-semibold text-white transition-all hover:bg-emerald-600"
                     >
-                      <WhatsAppIcon className="h-5 w-5" />
+                    <WhatsAppIcon className="h-5 w-5" />
                       WhatsApp
                     </a>
                   )}
                   <button
                     onClick={() => {
-                      if (!isAuthenticated) { router.push(`/login?redirect=/simsar/${params.id}`); return; }
+                    if (!isAuthenticated) { router.push(`/login?redirect=/simsar/${params.id}`); return; }
                       if (simsar.verificationStatus !== "VERIFIED") return;
                       setConversationId(undefined);
                       setShowChatModal(true);
                     }}
                     disabled={simsar.verificationStatus !== "VERIFIED"}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3.5 font-semibold text-white transition-all hover:bg-slate-800 hover:shadow-lg disabled:opacity-50"
+                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-3 font-semibold text-gray-700 transition-all hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <ChatIcon className="h-5 w-5" />
-                    Send Message
+                  <EmailIcon className="h-5 w-5" />
+                  Send Message
                   </button>
                   <button
                     onClick={handleWorkWithSimsar}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-amber-500 bg-white px-4 py-3.5 font-semibold text-amber-600 transition-all hover:bg-amber-50"
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-amber-500 px-4 py-3 font-semibold text-white transition-all hover:bg-amber-600"
                   >
-                    <BadgeIcon className="h-5 w-5" />
-                    Submit Transaction
+                  Submit Transaction
                   </button>
                 </div>
               </div>
 
-              {/* Quick Stats */}
-              <div className="rounded-2xl border border-gray-200 bg-white p-6">
-                <h3 className="text-lg font-bold text-gray-900">Details</h3>
-                <dl className="mt-4 space-y-4">
-                  {[
-                    { icon: <CalendarIcon className="h-5 w-5 text-gray-400" />, label: "Experience", value: simsar.experienceYears ? `${simsar.experienceYears} years` : "N/A" },
-                    { icon: <BadgeIcon className="h-5 w-5 text-gray-400" />, label: "RERA ID", value: simsar.reraId || "N/A" },
-                    { icon: <StarIcon filled className="h-5 w-5" />, label: "Reviews", value: simsar.reviewCount.toString() },
-                    { icon: <UserIcon className="h-5 w-5 text-gray-400" />, label: "Type", value: simsar.simsarType === "AGENCY_BROKER" ? "Agency" : "Independent" },
-                  ].map((item) => (
-                    <div key={item.label} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {item.icon}
-                        <dt className="text-gray-500">{item.label}</dt>
-                      </div>
-                      <dd className="font-semibold text-gray-900">{item.value}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-
-              {/* Agency Card */}
-              {simsar.simsarType === "AGENCY_BROKER" && simsar.agency && (
-                <Link
-                  href={`/agency/${simsar.agency.id}`}
-                  className="block rounded-2xl border-2 border-purple-100 bg-purple-50 p-6 transition-all hover:border-purple-200 hover:shadow-md"
-                >
-                  <div className="flex items-center gap-4">
-                    {simsar.agency.logoUrl ? (
-                      <img src={simsar.agency.logoUrl} alt={simsar.agency.name} className="h-14 w-14 rounded-xl object-cover ring-2 ring-purple-100" onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=100&h=100&fit=crop"; }} />
-                    ) : (
-                      <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-purple-400 text-xl font-bold text-white ring-2 ring-purple-100">
-                        {simsar.agency.name.charAt(0)}
-                      </div>
-                    )}
-                    <div>
-                      <p className="text-sm font-medium text-purple-600">Part of Agency</p>
-                      <p className="font-bold text-gray-900">{simsar.agency.name}</p>
-                    </div>
-                  </div>
-                  <p className="mt-4 text-sm font-medium text-purple-700">View all brokers →</p>
-                </Link>
-              )}
+            {/* Details Card */}
+            <div className="rounded-xl border border-gray-200 bg-white p-5">
+              <h3 className="font-semibold text-gray-900">Details</h3>
+              <dl className="mt-4 space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <dt className="text-gray-500">Experience</dt>
+                  <dd className="font-medium text-gray-900">{experienceDisplay ? `${experienceDisplay} years` : "N/A"}</dd>
             </div>
+                <div className="flex justify-between">
+                  <dt className="text-gray-500">RERA ID</dt>
+                  <dd className="font-medium text-gray-900">{simsar.reraId || "N/A"}</dd>
+          </div>
+                <div className="flex justify-between">
+                  <dt className="text-gray-500">Reviews</dt>
+                  <dd className="font-medium text-gray-900">{simsar.reviewCount}</dd>
+        </div>
+                <div className="flex justify-between">
+                  <dt className="text-gray-500">Type</dt>
+                  <dd className="font-medium text-gray-900">{simsar.simsarType === "AGENCY_BROKER" ? "Agency Broker" : "Independent"}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-gray-500">MySimsar Score</dt>
+                  <dd className="font-bold text-amber-600">{simsar.score}</dd>
+                </div>
+              </dl>
+            </div>
+
+            {/* Agency Card in Sidebar */}
+            {simsar.simsarType === "AGENCY_BROKER" && simsar.agency && (
+              <Link
+                href={`/agency/${simsar.agency.id}`}
+                className="block rounded-xl border border-purple-200 bg-purple-50 p-5 transition-all hover:border-purple-300"
+              >
+                <div className="flex items-center gap-3">
+                  {simsar.agency.logoUrl ? (
+                    <img src={simsar.agency.logoUrl} alt={simsar.agency.name} className="h-12 w-12 rounded-lg object-cover" onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=100&h=100&fit=crop"; }} />
+                  ) : (
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-purple-600 to-purple-400 text-lg font-bold text-white">
+                      {simsar.agency.name.charAt(0)}
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-xs font-medium text-purple-600">Part of Agency</p>
+                    <p className="font-semibold text-gray-900">{simsar.agency.name}</p>
+                  </div>
+                </div>
+                <p className="mt-3 text-sm font-medium text-purple-700">View all brokers →</p>
+              </Link>
+            )}
           </div>
         </div>
       </main>
@@ -862,49 +968,49 @@ export default function SimsarProfilePage() {
 
       {showClaimModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={() => setShowClaimModal(false)}>
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             {claimSuccess ? (
               <div className="text-center py-6">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
-                  <VerifiedIcon className="h-8 w-8" />
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
+                  <VerifiedIcon className="h-7 w-7" />
                 </div>
-                <h2 className="mt-4 text-2xl font-bold text-gray-900">Claim Submitted!</h2>
-                <p className="mt-2 text-gray-600">Your transaction claim is under review. You&apos;ll be notified once approved.</p>
-                <button onClick={() => { setShowClaimModal(false); setClaimSuccess(false); }} className="mt-6 rounded-xl bg-amber-500 px-6 py-3 font-semibold text-white hover:bg-amber-600">
+                <h2 className="mt-4 text-xl font-bold text-gray-900">Claim Submitted!</h2>
+                <p className="mt-2 text-gray-600">Your transaction claim is under review.</p>
+                <button onClick={() => { setShowClaimModal(false); setClaimSuccess(false); }} className="mt-6 rounded-lg bg-amber-500 px-6 py-2.5 font-semibold text-white hover:bg-amber-600">
                   Done
                 </button>
               </div>
             ) : (
               <>
-                <h2 className="text-2xl font-bold text-gray-900">Submit Transaction Claim</h2>
-                <p className="mt-2 text-gray-600">Verify your transaction to leave a review for {simsar.name}.</p>
-                {claimError && <div className="mt-4 rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-600">{claimError}</div>}
-                <form onSubmit={handleClaimSubmit} className="mt-6 space-y-5">
-                  <div>
+                <h2 className="text-xl font-bold text-gray-900">Submit Transaction Claim</h2>
+                <p className="mt-1 text-sm text-gray-600">Verify your transaction to leave a review for {simsar.name}.</p>
+                {claimError && <div className="mt-4 rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-600">{claimError}</div>}
+                <form onSubmit={handleClaimSubmit} className="mt-5 space-y-4">
+              <div>
                     <label htmlFor="transactionType" className="block text-sm font-medium text-gray-700">Transaction Type *</label>
-                    <select id="transactionType" value={claimForm.transactionType} onChange={(e) => setClaimForm({ ...claimForm, transactionType: e.target.value })} className="mt-2 block w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500">
+                    <select id="transactionType" value={claimForm.transactionType} onChange={(e) => setClaimForm({ ...claimForm, transactionType: e.target.value })} className="mt-1.5 block w-full rounded-lg border border-gray-300 px-3 py-2.5 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500">
                       <option value="purchase">Property Purchase</option>
                       <option value="rental">Property Rental</option>
                       <option value="investment">Investment</option>
                       <option value="off-plan">Off-plan Purchase</option>
-                    </select>
-                  </div>
-                  <div>
+                </select>
+              </div>
+              <div>
                     <label htmlFor="location" className="block text-sm font-medium text-gray-700">Property Location *</label>
-                    <input id="location" type="text" required value={claimForm.location} onChange={(e) => setClaimForm({ ...claimForm, location: e.target.value })} placeholder="e.g., Dubai Marina, Tower X" className="mt-2 block w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500" />
-                  </div>
+                    <input id="location" type="text" required value={claimForm.location} onChange={(e) => setClaimForm({ ...claimForm, location: e.target.value })} placeholder="e.g., Dubai Marina, Tower X" className="mt-1.5 block w-full rounded-lg border border-gray-300 px-3 py-2.5 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500" />
+              </div>
                   <div>
                     <label htmlFor="proofUrl" className="block text-sm font-medium text-gray-700">Proof Document URL</label>
-                    <input id="proofUrl" type="url" value={claimForm.proofUrl} onChange={(e) => setClaimForm({ ...claimForm, proofUrl: e.target.value })} placeholder="Link to contract or receipt" className="mt-2 block w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500" />
+                    <input id="proofUrl" type="url" value={claimForm.proofUrl} onChange={(e) => setClaimForm({ ...claimForm, proofUrl: e.target.value })} placeholder="Link to contract or receipt" className="mt-1.5 block w-full rounded-lg border border-gray-300 px-3 py-2.5 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500" />
                     <p className="mt-1 text-xs text-gray-500">Upload to Google Drive/Dropbox and paste link</p>
                   </div>
                   <div className="flex gap-3 pt-2">
-                    <button type="button" onClick={() => setShowClaimModal(false)} className="flex-1 rounded-xl border border-gray-200 px-4 py-3 font-semibold text-gray-700 hover:bg-gray-50">Cancel</button>
-                    <button type="submit" disabled={claimSubmitting} className="flex-1 rounded-xl bg-amber-500 px-4 py-3 font-semibold text-white hover:bg-amber-600 disabled:opacity-50">
+                    <button type="button" onClick={() => setShowClaimModal(false)} className="flex-1 rounded-lg border border-gray-200 px-4 py-2.5 font-semibold text-gray-700 hover:bg-gray-50">Cancel</button>
+                    <button type="submit" disabled={claimSubmitting} className="flex-1 rounded-lg bg-amber-500 px-4 py-2.5 font-semibold text-white hover:bg-amber-600 disabled:opacity-50">
                       {claimSubmitting ? "Submitting..." : "Submit"}
                     </button>
-                  </div>
-                </form>
+              </div>
+            </form>
               </>
             )}
           </div>
@@ -913,28 +1019,28 @@ export default function SimsarProfilePage() {
 
       {showReviewModal && simsar && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={() => setShowReviewModal(false)}>
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             {reviewSuccess ? (
               <div className="text-center py-6">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
-                  <VerifiedIcon className="h-8 w-8" />
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
+                  <VerifiedIcon className="h-7 w-7" />
                 </div>
-                <h2 className="mt-4 text-2xl font-bold text-gray-900">Review Posted!</h2>
+                <h2 className="mt-4 text-xl font-bold text-gray-900">Review Posted!</h2>
                 <p className="mt-2 text-gray-600">Thank you for sharing your experience.</p>
-                <button onClick={() => { setShowReviewModal(false); setReviewSuccess(false); }} className="mt-6 rounded-xl bg-amber-500 px-6 py-3 font-semibold text-white hover:bg-amber-600">Done</button>
+                <button onClick={() => { setShowReviewModal(false); setReviewSuccess(false); }} className="mt-6 rounded-lg bg-amber-500 px-6 py-2.5 font-semibold text-white hover:bg-amber-600">Done</button>
               </div>
             ) : (
               <>
-                <h2 className="text-2xl font-bold text-gray-900">Write a Review</h2>
-                <p className="mt-2 text-gray-600">Share your experience with {simsar.name}</p>
-                {reviewError && <div className="mt-4 rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-600">{reviewError}</div>}
-                <form onSubmit={handleReviewSubmit} className="mt-6 space-y-5">
+                <h2 className="text-xl font-bold text-gray-900">Write a Review</h2>
+                <p className="mt-1 text-sm text-gray-600">Share your experience with {simsar.name}</p>
+                {reviewError && <div className="mt-4 rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-600">{reviewError}</div>}
+                <form onSubmit={handleReviewSubmit} className="mt-5 space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Your Rating</label>
                     <div className="mt-2 flex gap-1">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button key={star} type="button" onClick={() => setReviewForm({ ...reviewForm, rating: star })} className="p-1 transition-transform hover:scale-110">
-                          <svg className={`h-8 w-8 ${star <= reviewForm.rating ? "text-amber-400" : "text-gray-300"}`} fill="currentColor" viewBox="0 0 20 20">
+                          <svg className={`h-7 w-7 ${star <= reviewForm.rating ? "text-amber-400" : "text-gray-300"}`} fill="currentColor" viewBox="0 0 20 20">
                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                           </svg>
                         </button>
@@ -943,11 +1049,11 @@ export default function SimsarProfilePage() {
                   </div>
                   <div>
                     <label htmlFor="reviewText" className="block text-sm font-medium text-gray-700">Your Review</label>
-                    <textarea id="reviewText" required rows={4} minLength={10} value={reviewForm.text} onChange={(e) => setReviewForm({ ...reviewForm, text: e.target.value })} placeholder="Tell others about your experience..." className="mt-2 block w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500" />
+                    <textarea id="reviewText" required rows={4} minLength={10} value={reviewForm.text} onChange={(e) => setReviewForm({ ...reviewForm, text: e.target.value })} placeholder="Tell others about your experience..." className="mt-1.5 block w-full rounded-lg border border-gray-300 px-3 py-2.5 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500" />
                   </div>
                   <div className="flex gap-3 pt-2">
-                    <button type="button" onClick={() => setShowReviewModal(false)} className="flex-1 rounded-xl border border-gray-200 px-4 py-3 font-semibold text-gray-700 hover:bg-gray-50">Cancel</button>
-                    <button type="submit" disabled={reviewSubmitting || reviewForm.text.length < 10} className="flex-1 rounded-xl bg-amber-500 px-4 py-3 font-semibold text-white hover:bg-amber-600 disabled:opacity-50">
+                    <button type="button" onClick={() => setShowReviewModal(false)} className="flex-1 rounded-lg border border-gray-200 px-4 py-2.5 font-semibold text-gray-700 hover:bg-gray-50">Cancel</button>
+                    <button type="submit" disabled={reviewSubmitting || reviewForm.text.length < 10} className="flex-1 rounded-lg bg-amber-500 px-4 py-2.5 font-semibold text-white hover:bg-amber-600 disabled:opacity-50">
                       {reviewSubmitting ? "Posting..." : "Post Review"}
                     </button>
                   </div>

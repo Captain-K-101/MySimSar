@@ -303,13 +303,13 @@ function DirectoryContent() {
       (viewMode === "individuals" && simsar.simsarType === "INDIVIDUAL") ||
       (viewMode === "agencies" && simsar.simsarType === "AGENCY_BROKER");
 
-    // Experience filter (using exclusive upper bounds to avoid overlaps)
+    // Experience filter
     let matchesExperience = true;
     if (selectedExperience) {
       const years = simsar.experienceYears || 0;
-      if (selectedExperience === "1-5") matchesExperience = years >= 1 && years < 5;
-      else if (selectedExperience === "5-10") matchesExperience = years >= 5 && years < 10;
-      else if (selectedExperience === "10+") matchesExperience = years >= 10;
+      if (selectedExperience === "1-5") matchesExperience = years >= 1 && years <= 5;
+      else if (selectedExperience === "5-10") matchesExperience = years > 5 && years <= 10;
+      else if (selectedExperience === "10+") matchesExperience = years > 10;
     }
 
     // Verified filter
