@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "@/lib/auth";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -245,6 +246,7 @@ function PropertyCard({ property }: { property: Property }) {
 function PropertiesContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isAuthenticated, logout, user } = useAuth();
   
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
@@ -253,6 +255,7 @@ function PropertiesContent() {
   const [hasMore, setHasMore] = useState(false);
   const [offset, setOffset] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // Filters
   const [type, setType] = useState(searchParams.get("type") || "");
@@ -341,7 +344,75 @@ function PropertiesContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Navigation Header */}
+      <header className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between">
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-slate-800 to-slate-600 text-lg font-bold text-white shadow-sm">M</div>
+              <span className="text-xl font-bold text-gray-900">MySimsar</span>
+            </Link>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-6">
+              <Link href="/" className="text-sm font-medium text-gray-600 hover:text-gray-900">Home</Link>
+              <Link href="/properties" className="text-sm font-medium text-emerald-600">Properties</Link>
+              <Link href="/directory" className="text-sm font-medium text-gray-600 hover:text-gray-900">Find Brokers</Link>
+              {isAuthenticated ? (
+                <>
+                  <Link href="/dashboard" className="text-sm font-medium text-gray-600 hover:text-gray-900">Dashboard</Link>
+                  <button onClick={logout} className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-200">Sign Out</button>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900">Sign In</Link>
+                  <Link href="/register" className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Get Started</Link>
+                </>
+              )}
+            </nav>
+
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100"
+              aria-label="Toggle menu"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {mobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
+
+          {/* Mobile Navigation */}
+          {mobileMenuOpen && (
+            <div className="md:hidden py-4 border-t border-gray-100">
+              <div className="flex flex-col gap-3">
+                <Link href="/" className="px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg">Home</Link>
+                <Link href="/properties" className="px-3 py-2 text-sm font-medium text-emerald-600 bg-emerald-50 rounded-lg">Properties</Link>
+                <Link href="/directory" className="px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg">Find Brokers</Link>
+                {isAuthenticated ? (
+                  <>
+                    <Link href="/dashboard" className="px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg">Dashboard</Link>
+                    <button onClick={logout} className="px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg text-left">Sign Out</button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/login" className="px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg">Sign In</Link>
+                    <Link href="/register" className="px-3 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg text-center">Get Started</Link>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* Filters Bar */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4">
           {/* Top row with title and sort */}
