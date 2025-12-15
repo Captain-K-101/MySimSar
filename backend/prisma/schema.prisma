@@ -1,0 +1,254 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String   @id @default(cuid())
+  email              String   @unique
+  phone              String?  @unique
+  passwordHash       String
+  role               String   @default("USER") // USER, BROKER, ADMIN
+  status             String   @default("active")
+  createdAt          DateTime @default(now())
+  lastLoginAt        DateTime?
+  twoFAEnabled       Boolean  @default(false)
+  mustChangePassword Boolean  @default(false) // For agency-created brokers
+
+  simsar        Simsar?
+  reviews       Review[]
+  claims        TransactionClaim[]
+  ownedAgency   Agency?        @relation("AgencyOwner")
+  agencyReviews AgencyReview[]
+  conversationsAsUser Conversation[]
+  messages      Message[]
+  profileViewsAsViewer ProfileView[] @relation("UserProfileViews")
+}
+
+model Agency {
+  id                  String   @id @default(cuid())
+  ownerId             String   @unique
+  name                String
+  slug                String   @unique
+  logoUrl             String?
+  bannerUrl           String?
+  bio                 String?
+  reraLicenseNumber   String?
+  website             String?
+  email               String?
+  phone               String?
+  verificationStatus  String   @default("PENDING") // PENDING, VERIFIED, REJECTED
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  owner               User                @relation("AgencyOwner", fields: [ownerId], references: [id])
+  brokers             Simsar[]            @relation("AgencyBrokers")
+  invites             AgencyInvite[]
+  reviews             AgencyReview[]
+  joinRequests        AgencyJoinRequest[]
+  recruitmentOffers   RecruitmentOffer[]
+}
+
+model AgencyInvite {
+  id          String   @id @default(cuid())
+  agencyId    String
+  email       String
+  code        String   @unique @default(cuid())
+  status      String   @default("PENDING") // PENDING, ACCEPTED, REJECTED, EXPIRED
+  invitedAt   DateTime @default(now())
+  expiresAt   DateTime
+
+  agency      Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+}
+
+model AgencyJoinRequest {
+  id          String   @id @default(cuid())
+  agencyId    String
+  simsarId    String
+  message     String?
+  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt   DateTime @default(now())
+  decidedAt   DateTime?
+
+  agency      Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  simsar      Simsar   @relation(fields: [simsarId], references: [id], onDelete: Cascade)
+}
+
+model AgencyReview {
+  id          String   @id @default(cuid())
+  agencyId    String
+  userId      String
+  rating      Int
+  text        String
+  createdAt   DateTime @default(now())
+
+  agency      Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Simsar {
+  id                          String   @id @default(cuid())
+  userId                      String   @unique
+  name                        String
+  photoUrl                    String?
+  companyName                 String?
+  previousCompanyName         String?  // Stored when broker joins an agency
+  bio                         String?
+  reraId                      String?
+  licenseNumber               String?
+  licenseDocUrl               String?
+  experienceYears             Int?
+  languages                   String   @default("[]") // JSON array stored as string
+  whatsappNumber              String?
+  profileCompletenessScore    Int      @default(0)
+  verificationStatus          String   @default("PENDING") // PENDING, UNDER_REVIEW, VERIFIED, REJECTED, NEED_MORE_DOCS
+  verificationScore           Float?   @default(0)
+  tierHint                    String?
+  simsarType                  String   @default("INDIVIDUAL") // INDIVIDUAL, AGENCY_BROKER
+  agencyId                    String?
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
+
+  user                        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agency                      Agency?  @relation("AgencyBrokers", fields: [agencyId], references: [id])
+  verificationRequests        VerificationRequest[]
+  reviews                     Review[]
+  transactionClaims           TransactionClaim[]
+  joinRequests                AgencyJoinRequest[]
+  recruitmentOffers           RecruitmentOffer[]
+  conversationsAsBroker       Conversation[]
+  profileViews                ProfileView[] @relation("SimsarProfileViews")
+  portfolioItems              PortfolioItem[]
+}
+
+model PortfolioItem {
+  id          String   @id @default(cuid())
+  simsarId    String
+  type        String   // sale, rental, off-plan
+  title       String
+  location    String
+  price       String
+  bedrooms    Int
+  bathrooms   Int
+  area        String
+  images      String   @default("[]") // JSON array of image URLs
+  status      String   // sold, rented, available
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  simsar      Simsar   @relation(fields: [simsarId], references: [id], onDelete: Cascade)
+
+  @@index([simsarId])
+}
+
+model RecruitmentOffer {
+  id          String    @id @default(cuid())
+  agencyId    String
+  simsarId    String
+  message     String?
+  status      String    @default("PENDING") // PENDING, ACCEPTED, DECLINED, EXPIRED
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime
+  decidedAt   DateTime?
+
+  agency      Agency    @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  simsar      Simsar    @relation(fields: [simsarId], references: [id], onDelete: Cascade)
+}
+
+model Conversation {
+  id            String   @id @default(cuid())
+  userId        String
+  simsarId      String
+  lastMessageAt DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  simsar Simsar @relation(fields: [simsarId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@unique([userId, simsarId])
+  @@index([userId])
+  @@index([simsarId])
+  @@index([lastMessageAt])
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  senderId       String
+  senderRole     String   // USER or BROKER
+  text           String
+  readAt         DateTime?
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User        @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([readAt])
+}
+
+model ProfileView {
+  id        String   @id @default(cuid())
+  simsarId  String
+  viewerId  String?
+  viewedAt  DateTime @default(now())
+
+  simsar    Simsar   @relation("SimsarProfileViews", fields: [simsarId], references: [id], onDelete: Cascade)
+  viewer    User?    @relation("UserProfileViews", fields: [viewerId], references: [id], onDelete: Cascade)
+
+  @@index([simsarId, viewedAt])
+  @@index([viewerId, viewedAt])
+}
+
+model VerificationRequest {
+  id            String   @id @default(cuid())
+  simsarId      String
+  status        String   @default("PENDING") // PENDING, UNDER_REVIEW, VERIFIED, REJECTED, NEED_MORE_DOCS
+  documents     String   @default("{}") // JSON stored as string
+  adminNotes    String?
+  submittedAt   DateTime @default(now())
+  decidedAt     DateTime?
+
+  simsar        Simsar   @relation(fields: [simsarId], references: [id], onDelete: Cascade)
+}
+
+model TransactionClaim {
+  id          String   @id @default(cuid())
+  userId      String
+  simsarId    String
+  proofLinks  String   @default("{}") // JSON stored as string
+  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED, NEED_MORE_INFO
+  adminNotes  String?
+  createdAt   DateTime @default(now())
+  decidedAt   DateTime?
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  simsar      Simsar   @relation(fields: [simsarId], references: [id], onDelete: Cascade)
+  review      Review?
+}
+
+model Review {
+  id              String   @id @default(cuid())
+  simsarId        String
+  userId          String
+  transactionId   String?  @unique
+  rating          Int
+  text            String
+  sentimentScore  Float?
+  verifiedFlag    Boolean  @default(false)
+  status          String   @default("ACTIVE") // ACTIVE, HIDDEN, REMOVED
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  simsar          Simsar   @relation(fields: [simsarId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transaction     TransactionClaim? @relation(fields: [transactionId], references: [id])
+}
