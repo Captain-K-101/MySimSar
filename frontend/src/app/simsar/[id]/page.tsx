@@ -181,14 +181,15 @@ function PropertyDetailModal({ property, onClose }: { property: PortfolioItem; o
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-2 sm:p-4 backdrop-blur-sm" onClick={onClose}>
-      <div className="relative w-full max-w-3xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden rounded-2xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
-        <button onClick={onClose} aria-label="Close" className="absolute right-4 top-4 z-20 rounded-full bg-black/50 p-2 text-white shadow-lg backdrop-blur-sm transition-all hover:bg-black/70 hover:scale-105">
+      <div className="relative flex h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
+        <button onClick={onClose} aria-label="Close" className="absolute right-4 top-4 z-20 rounded-full bg-black/50 p-2 text-white shadow-lg backdrop-blur-sm transition-all hover:scale-105 hover:bg-black/70">
           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
-        <div className="relative h-56 sm:h-80 bg-gray-900">
+        {/* Hero image */}
+        <div className="relative h-56 bg-gray-900 sm:h-80 md:h-[360px]">
           <img
             src={property.images[currentImageIndex] || "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=400&fit=crop"}
             alt={`${property.title} - Image ${currentImageIndex + 1}`}
@@ -216,25 +217,53 @@ function PropertyDetailModal({ property, onClose }: { property: PortfolioItem; o
           </div>
         </div>
 
+        {/* Thumbnails */}
         {property.images.length > 1 && (
-          <div className="flex gap-2 overflow-x-auto bg-gray-100 p-3">
+          <div className="flex gap-2 overflow-x-auto border-b border-gray-100 bg-gray-50 p-3">
             {property.images.map((img, index) => (
               <button
                 key={index}
                 onClick={() => goToImage(index)}
                 aria-label={`View image ${index + 1}`}
-                className={`relative h-16 w-20 flex-shrink-0 overflow-hidden rounded-lg transition-all ${index === currentImageIndex ? "ring-2 ring-amber-500 ring-offset-2" : "opacity-60 hover:opacity-100"}`}
+                className={`relative h-16 w-20 flex-shrink-0 overflow-hidden rounded-lg transition-all ${
+                  index === currentImageIndex ? "ring-2 ring-amber-500 ring-offset-2" : "opacity-70 hover:opacity-100"
+                }`}
               >
-                <img src={img} alt={`Thumbnail ${index + 1}`} className="h-full w-full object-cover" onError={(e) => { e.currentTarget.src = "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=200&h=150&fit=crop"; }} />
+                <img
+                  src={img}
+                  alt={`Thumbnail ${index + 1}`}
+                  className="h-full w-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src =
+                      "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=200&h=150&fit=crop";
+                  }}
+                />
               </button>
             ))}
           </div>
         )}
 
-        <div className="p-5 sm:p-6">
-          <div className="flex items-center gap-2 mb-2">
-            <span className={`rounded-md px-2 py-1 text-xs font-semibold ${property.status === "sold" ? "bg-emerald-500 text-white" : "bg-blue-500 text-white"}`}>
-              {property.status === "sold" ? "Sold" : "Rented"}
+        {/* Scrollable details */}
+        <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6 sm:py-5">
+          <div className="mb-2 flex items-center gap-2">
+            <span
+              className={`rounded-md px-2 py-1 text-xs font-semibold ${
+                property.status === "sold"
+                  ? "bg-emerald-500 text-white"
+                  : property.status === "rented"
+                  ? "bg-blue-500 text-white"
+                  : property.status === "reserved"
+                  ? "bg-yellow-500 text-white"
+                  : "bg-amber-500 text-white"
+              }`}
+            >
+              {property.status === "available"
+                ? "Available"
+                : property.status === "reserved"
+                ? "Reserved"
+                : property.status === "sold"
+                ? "Sold"
+                : "Rented"}
             </span>
             {property.referenceNumber && (
               <span className="text-xs text-gray-400">Ref: {property.referenceNumber}</span>
@@ -257,7 +286,7 @@ function PropertyDetailModal({ property, onClose }: { property: PortfolioItem; o
               <div key={stat.label} className="rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 p-4 text-center">
                 <p className="text-xl font-bold text-gray-900">{stat.value}</p>
                 <p className="text-xs font-medium text-gray-500">{stat.label}</p>
-              </div>
+            </div>
             ))}
           </div>
 
@@ -334,7 +363,7 @@ function PortfolioCard({ item, onClick }: { item: PortfolioItem; onClick: () => 
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
             {item.bedrooms === 0 ? "Studio" : `${item.bedrooms} Beds`}
-          </span>
+    </span>
           <span className="flex items-center gap-1">
             <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
@@ -843,20 +872,20 @@ export default function SimsarProfilePage() {
                   </div>
                     {filteredPortfolio.length > 0 ? (
                       <div className="grid gap-4 sm:grid-cols-2">
-                        {filteredPortfolio.map((item) => (
-                          <PortfolioCard key={item.id} item={item} onClick={() => setSelectedProperty(item)} />
-                        ))}
-                      </div>
-                    ) : (
+                    {filteredPortfolio.map((item) => (
+                      <PortfolioCard key={item.id} item={item} onClick={() => setSelectedProperty(item)} />
+                      ))}
+                    </div>
+                  ) : (
                       <div className="text-center py-10 border-2 border-dashed border-gray-200 rounded-xl">
                         <HomeIcon className="mx-auto h-10 w-10 text-gray-300" />
                         <h4 className="mt-3 font-semibold text-gray-900">No properties listed</h4>
                         <p className="mt-1 text-sm text-gray-500">This broker hasn&apos;t added any properties yet.</p>
-                      </div>
-                    )}
+                    </div>
+                  )}
                     {portfolio.filter(p => p.status === "available").length > 0 && (
                       <div className="mt-6 text-center">
-                        <Link
+                <Link
                           href={`/properties?brokerId=${simsar.id}`}
                           className="inline-flex items-center gap-2 text-amber-600 font-medium hover:text-amber-700"
                         >
@@ -865,7 +894,7 @@ export default function SimsarProfilePage() {
                         </Link>
                       </div>
                     )}
-                  </div>
+                    </div>
               )}
 
               {activeSection === "reviews" && (
@@ -876,17 +905,17 @@ export default function SimsarProfilePage() {
                       {simsar.reviews.map((review) => (
                           <ReviewCard key={review.id} review={review} />
                       ))}
-                    </div>
+                  </div>
                   ) : (
                       <div className="rounded-xl border-2 border-dashed border-gray-200 p-10 text-center">
                         <StarIcon filled={false} className="mx-auto h-10 w-10 text-gray-300" />
                         <h4 className="mt-3 font-semibold text-gray-900">No reviews yet</h4>
                         <p className="mt-1 text-sm text-gray-500">Be the first to leave a review!</p>
-                    </div>
+                  </div>
                     )}
-                      </div>
+                  </div>
                     )}
-                    </div>
+                  </div>
                   </div>
               </div>
 
