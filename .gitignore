@@ -68,4 +68,6 @@ ecosystem.config.js
 # Deployment scripts (keep samples)
 deploy/*.sh
 !deploy/*.sample.sh
+!deploy/setup-domain-https.sh
+!deploy/domain-commands.sh
 

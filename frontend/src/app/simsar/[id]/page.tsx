@@ -410,7 +410,7 @@ function ReviewCard({ review }: { review: Review }) {
       </div>
           <p className="mt-0.5 text-sm text-gray-500">
             {new Date(review.createdAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-          </p>
+        </p>
           <p className="mt-3 text-gray-600 leading-relaxed">{review.text}</p>
         </div>
       </div>
