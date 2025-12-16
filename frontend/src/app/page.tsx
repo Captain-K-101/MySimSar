@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 
@@ -954,9 +955,7 @@ export default function Home() {
             {/* Brand */}
             <div className="md:col-span-1">
               <Link href="/" className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-slate-800 to-slate-600 text-lg font-bold text-white">
-                  M
-                </div>
+                <Image src="/images/logo.png" alt="MySimsar" width={40} height={40} className="object-contain" />
                 <span className="text-xl font-bold text-gray-900">MySimsar</span>
               </Link>
               <p className="mt-4 text-sm text-gray-500">

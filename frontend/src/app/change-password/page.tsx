@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/lib/auth";
 
 function ChangePasswordContent() {
@@ -108,9 +109,7 @@ function ChangePasswordContent() {
       <header className="border-b border-gray-100 bg-white">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-slate-800 to-slate-600 text-lg font-bold text-white shadow-sm">
-              M
-            </div>
+            <Image src="/images/logo.png" alt="MySimsar" width={40} height={40} className="object-contain" />
             <span className="text-xl font-bold text-gray-900">MySimsar</span>
           </Link>
         </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth, getToken } from "@/lib/auth";
 
 type Step = 1 | 2 | 3 | 4;
@@ -247,9 +248,7 @@ export default function VerifyPage() {
         <header className="border-b border-gray-200 bg-white">
           <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4">
             <Link href="/dashboard" className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-slate-800 to-slate-600 text-lg font-bold text-white">
-                M
-              </div>
+              <Image src="/images/logo.png" alt="MySimsar" width={40} height={40} className="object-contain" />
               <span className="text-xl font-bold text-gray-900">MySimsar</span>
             </Link>
             <Link href="/dashboard" className="text-sm text-gray-600 hover:text-gray-900">
@@ -338,9 +337,7 @@ export default function VerifyPage() {
         <header className="border-b border-gray-200 bg-white">
           <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4">
             <Link href="/dashboard" className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-slate-800 to-slate-600 text-lg font-bold text-white">
-                M
-              </div>
+              <Image src="/images/logo.png" alt="MySimsar" width={40} height={40} className="object-contain" />
               <span className="text-xl font-bold text-gray-900">MySimsar</span>
             </Link>
           </div>
@@ -378,9 +375,7 @@ export default function VerifyPage() {
       <header className="border-b border-gray-200 bg-white">
         <div className="mx-auto flex h-16 max-w-4xl items-center justify-between px-4">
           <Link href="/dashboard" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-slate-800 to-slate-600 text-lg font-bold text-white">
-              M
-            </div>
+            <Image src="/images/logo.png" alt="MySimsar" width={40} height={40} className="object-contain" />
             <span className="text-xl font-bold text-gray-900">MySimsar</span>
           </Link>
           <Link href="/dashboard" className="text-sm text-gray-600 hover:text-gray-900">

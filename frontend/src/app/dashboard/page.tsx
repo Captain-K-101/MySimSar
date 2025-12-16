@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth, getToken } from "@/lib/auth";
 
@@ -952,9 +953,9 @@ function PortfolioCard({ item, onView, onEdit }: {
 
         {/* Date */}
         {item.createdAt && (
-          <p className="mt-3 text-xs text-gray-400">
+        <p className="mt-3 text-xs text-gray-400">
             Added: {new Date(item.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-          </p>
+        </p>
         )}
       </div>
 
@@ -1027,14 +1028,14 @@ function ViewPropertyModal({
 
         {/* Image Carousel */}
         <div className="relative h-72 bg-gray-900">
-        <img
-          src={item.images[currentImageIndex] || "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=400&fit=crop"}
-          alt={`${item.title} - Image ${currentImageIndex + 1}`}
-          className="h-full w-full object-cover transition-opacity duration-300"
+          <img
+            src={item.images[currentImageIndex] || "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=400&fit=crop"}
+            alt={`${item.title} - Image ${currentImageIndex + 1}`}
+            className="h-full w-full object-cover transition-opacity duration-300"
           onError={(e) => {
             e.currentTarget.src = "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=400&fit=crop";
           }}
-        />
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
           
           {/* Navigation Arrows */}
@@ -1132,12 +1133,12 @@ function ViewPropertyModal({
               <p className="text-sm text-gray-500">Sq Ft</p>
             </div>
             {item.createdAt && (
-              <div className="rounded-xl bg-gray-50 p-4 text-center">
-                <p className="text-2xl font-bold text-gray-900">
+            <div className="rounded-xl bg-gray-50 p-4 text-center">
+              <p className="text-2xl font-bold text-gray-900">
                   {new Date(item.createdAt).toLocaleDateString("en-US", { month: "short", year: "2-digit" })}
-                </p>
+              </p>
                 <p className="text-sm text-gray-500">Listed</p>
-              </div>
+            </div>
             )}
           </div>
 
@@ -1359,8 +1360,8 @@ function PropertyFormModal({
     }
     
     if (currentStep === 2) {
-      const filteredImages = formData.images.filter(url => url.trim() !== "");
-      if (filteredImages.length === 0) {
+    const filteredImages = formData.images.filter(url => url.trim() !== "");
+    if (filteredImages.length === 0) {
         setFormError("Please add at least one image URL");
         return false;
       }
@@ -1444,20 +1445,20 @@ function PropertyFormModal({
             <div className="space-y-4">
               {/* Listing Type & Property Type */}
               <div className="grid grid-cols-2 gap-4">
-                <div>
+          <div>
                   <label className="block text-sm font-medium text-gray-700">Listing Type *</label>
                   <div className="mt-2 flex gap-2">
-                    {[
-                      { value: "sale", label: "Sale" },
+              {[
+                { value: "sale", label: "Sale" },
                       { value: "rental", label: "Rent" },
-                      { value: "off-plan", label: "Off-Plan" },
-                    ].map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => setFormData({ ...formData, type: option.value as typeof formData.type })}
+                { value: "off-plan", label: "Off-Plan" },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, type: option.value as typeof formData.type })}
                         className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                          formData.type === option.value
+                    formData.type === option.value
                             ? "bg-emerald-600 text-white"
                             : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                         }`}
@@ -1500,50 +1501,50 @@ function PropertyFormModal({
                           ? option.value === "available" ? "bg-green-600 text-white" :
                             option.value === "reserved" ? "bg-yellow-500 text-white" :
                             "bg-blue-600 text-white"
-                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
-              {/* Property Title */}
-              <div>
+          {/* Property Title */}
+          <div>
                 <label htmlFor="property-title" className="block text-sm font-medium text-gray-700">Property Title *</label>
-                <input
+            <input
                   id="property-title"
-                  type="text"
-                  required
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              type="text"
+              required
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="e.g., Luxury 3BR Apartment with Marina View"
                   className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                />
-              </div>
+            />
+          </div>
 
               {/* Location & Building */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
                   <label htmlFor="property-location" className="block text-sm font-medium text-gray-700">Location/Area *</label>
-                  <input
+              <input
                     id="property-location"
-                    type="text"
-                    required
+                type="text"
+                required
                     list="location-suggestions"
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    placeholder="e.g., Dubai Marina"
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                placeholder="e.g., Dubai Marina"
                     className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  />
+              />
                   <datalist id="location-suggestions">
                     {POPULAR_LOCATIONS.map(loc => <option key={loc} value={loc} />)}
                   </datalist>
-                </div>
-                <div>
+            </div>
+            <div>
                   <label htmlFor="property-building" className="block text-sm font-medium text-gray-700">Building/Community</label>
-                  <input
+              <input
                     id="property-building"
                     type="text"
                     value={formData.building}
@@ -1560,14 +1561,14 @@ function PropertyFormModal({
                   <label htmlFor="property-price" className="block text-sm font-medium text-gray-700">Price *</label>
                   <input
                     id="property-price"
-                    type="text"
-                    required
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                type="text"
+                required
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                     placeholder={formData.type === "rental" ? "e.g., AED 120,000/year" : "e.g., AED 2,500,000"}
                     className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  />
-                </div>
+              />
+            </div>
                 {formData.type === "off-plan" && (
                   <div>
                     <label htmlFor="payment-plan" className="block text-sm font-medium text-gray-700">Payment Plan</label>
@@ -1581,42 +1582,42 @@ function PropertyFormModal({
                     />
                   </div>
                 )}
-              </div>
+          </div>
 
-              {/* Beds, Baths, Area */}
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Bedrooms</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={formData.bedrooms}
-                    onChange={(e) => setFormData({ ...formData, bedrooms: parseInt(e.target.value) || 0 })}
+          {/* Beds, Baths, Area */}
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Bedrooms</label>
+              <input
+                type="number"
+                min="0"
+                value={formData.bedrooms}
+                onChange={(e) => setFormData({ ...formData, bedrooms: parseInt(e.target.value) || 0 })}
                     className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  />
+              />
                   <p className="mt-1 text-xs text-gray-400">0 = Studio</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Bathrooms</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={formData.bathrooms}
-                    onChange={(e) => setFormData({ ...formData, bathrooms: parseInt(e.target.value) || 0 })}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Bathrooms</label>
+              <input
+                type="number"
+                min="0"
+                value={formData.bathrooms}
+                onChange={(e) => setFormData({ ...formData, bathrooms: parseInt(e.target.value) || 0 })}
                     className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  />
-                </div>
-                <div>
+              />
+            </div>
+            <div>
                   <label className="block text-sm font-medium text-gray-700">Area *</label>
-                  <input
-                    type="text"
-                    value={formData.area}
-                    onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-                    placeholder="e.g., 1,500 sq ft"
+              <input
+                type="text"
+                value={formData.area}
+                onChange={(e) => setFormData({ ...formData, area: e.target.value })}
+                placeholder="e.g., 1,500 sq ft"
                     className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  />
-                </div>
-              </div>
+              />
+            </div>
+          </div>
 
               {/* Furnishing & Completion Year */}
               <div className="grid grid-cols-2 gap-4">
@@ -1664,61 +1665,61 @@ function PropertyFormModal({
           {step === 2 && (
             <div className="space-y-4">
               {/* Property Images */}
-              <div>
-                <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center justify-between">
                   <label className="block text-sm font-medium text-gray-700">Property Images *</label>
-                  <span className="text-xs text-gray-400">{formData.images.filter(u => u.trim()).length} image(s)</span>
-                </div>
+              <span className="text-xs text-gray-400">{formData.images.filter(u => u.trim()).length} image(s)</span>
+            </div>
                 <p className="text-xs text-gray-500 mt-1">Add image URLs (upload to Imgur, Google Drive, etc.)</p>
-                <div className="mt-2 space-y-2">
-                  {formData.images.map((url, index) => (
-                    <div key={index} className="flex gap-2">
-                      <input
-                        type="url"
-                        value={url}
-                        onChange={(e) => updateImageUrl(index, e.target.value)}
-                        placeholder={`Image ${index + 1} URL (https://...)`}
+            <div className="mt-2 space-y-2">
+              {formData.images.map((url, index) => (
+                <div key={index} className="flex gap-2">
+                  <input
+                    type="url"
+                    value={url}
+                    onChange={(e) => updateImageUrl(index, e.target.value)}
+                    placeholder={`Image ${index + 1} URL (https://...)`}
                         className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                      />
-                      {formData.images.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeImageField(index)}
-                          className="rounded-lg border border-gray-200 p-2.5 text-gray-400 transition-colors hover:bg-red-50 hover:border-red-200 hover:text-red-500"
-                        >
-                          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      )}
-                    </div>
-                  ))}
+                  />
+                  {formData.images.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeImageField(index)}
+                      className="rounded-lg border border-gray-200 p-2.5 text-gray-400 transition-colors hover:bg-red-50 hover:border-red-200 hover:text-red-500"
+                    >
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
-                <button
-                  type="button"
-                  onClick={addImageField}
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={addImageField}
                   className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-200 px-4 py-3 text-sm font-medium text-gray-500 transition-colors hover:border-emerald-400 hover:text-emerald-600"
-                >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  Add Another Image
-                </button>
-                {/* Image Preview */}
-                {formData.images.some(u => u.trim()) && (
-                  <div className="mt-3 flex gap-2 overflow-x-auto py-2">
-                    {formData.images.filter(u => u.trim()).map((url, index) => (
-                      <div key={index} className="relative h-16 w-24 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200">
-                        <img src={url} alt={`Preview ${index + 1}`} className="h-full w-full object-cover" onError={(e) => (e.currentTarget.src = 'https://via.placeholder.com/96x64?text=Invalid')} />
-                        <span className="absolute bottom-0 left-0 right-0 bg-black/50 px-1 py-0.5 text-center text-[10px] text-white">{index + 1}</span>
-                      </div>
-                    ))}
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Add Another Image
+            </button>
+            {/* Image Preview */}
+            {formData.images.some(u => u.trim()) && (
+              <div className="mt-3 flex gap-2 overflow-x-auto py-2">
+                {formData.images.filter(u => u.trim()).map((url, index) => (
+                  <div key={index} className="relative h-16 w-24 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200">
+                    <img src={url} alt={`Preview ${index + 1}`} className="h-full w-full object-cover" onError={(e) => (e.currentTarget.src = 'https://via.placeholder.com/96x64?text=Invalid')} />
+                    <span className="absolute bottom-0 left-0 right-0 bg-black/50 px-1 py-0.5 text-center text-[10px] text-white">{index + 1}</span>
                   </div>
-                )}
+                ))}
               </div>
+            )}
+          </div>
 
               {/* Video URL */}
-              <div>
+          <div>
                 <label className="block text-sm font-medium text-gray-700">Video URL</label>
                 <input
                   type="url"
@@ -1726,11 +1727,11 @@ function PropertyFormModal({
                   onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
                   placeholder="YouTube or Vimeo link (optional)"
                   className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                />
-              </div>
+            />
+          </div>
 
               {/* Floor Plan URL */}
-              <div>
+          <div>
                 <label className="block text-sm font-medium text-gray-700">Floor Plan URL</label>
                 <input
                   type="url"
@@ -1763,9 +1764,9 @@ function PropertyFormModal({
                 <label className="block text-sm font-medium text-gray-700 mb-3">Building/Community Amenities</label>
                 <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
                   {COMMON_AMENITIES.map(amenity => (
-                    <button
+                <button
                       key={amenity}
-                      type="button"
+                  type="button"
                       onClick={() => toggleAmenity(amenity)}
                       className={`px-3 py-2 text-xs font-medium rounded-lg border transition-colors ${
                         formData.amenities.includes(amenity)
@@ -1774,10 +1775,10 @@ function PropertyFormModal({
                       }`}
                     >
                       {amenity}
-                    </button>
-                  ))}
-                </div>
-              </div>
+                </button>
+              ))}
+            </div>
+          </div>
 
               {/* Property Features */}
               <div>
@@ -1851,13 +1852,13 @@ function PropertyFormModal({
                 Back
               </button>
             ) : (
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 rounded-lg border border-gray-200 px-4 py-3 font-medium text-gray-600 transition-colors hover:bg-gray-50"
-              >
-                Cancel
-              </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 rounded-lg border border-gray-200 px-4 py-3 font-medium text-gray-600 transition-colors hover:bg-gray-50"
+            >
+              Cancel
+            </button>
             )}
             {step < totalSteps ? (
               <button
@@ -1868,12 +1869,12 @@ function PropertyFormModal({
                 Continue
               </button>
             ) : (
-              <button
-                type="submit"
+            <button
+              type="submit"
                 className="flex-1 rounded-lg bg-emerald-600 px-4 py-3 font-medium text-white transition-colors hover:bg-emerald-700"
-              >
-                {editItem ? "Save Changes" : "Add Property"}
-              </button>
+            >
+              {editItem ? "Save Changes" : "Add Property"}
+            </button>
             )}
           </div>
         </form>
@@ -2156,9 +2157,9 @@ export default function DashboardPage() {
       } else {
         // Fall back to local update if API fails
         if (isUpdate) {
-          setPortfolio(prev => prev.map(p => p.id === item.id ? item : p));
-        } else {
-          setPortfolio(prev => [item, ...prev]);
+      setPortfolio(prev => prev.map(p => p.id === item.id ? item : p));
+    } else {
+      setPortfolio(prev => [item, ...prev]);
         }
       }
     } catch {
@@ -2187,15 +2188,15 @@ export default function DashboardPage() {
       );
 
       if (res.ok) {
-        setPortfolio(prev => prev.filter(p => p.id !== selectedItem.id));
+      setPortfolio(prev => prev.filter(p => p.id !== selectedItem.id));
       }
     } catch {
       // Still remove locally even if API fails
       setPortfolio(prev => prev.filter(p => p.id !== selectedItem.id));
     }
     
-    setSelectedItem(null);
-    setIsDeleteModalOpen(false);
+      setSelectedItem(null);
+      setIsDeleteModalOpen(false);
   };
 
   const handleAddNew = () => {
@@ -2250,9 +2251,7 @@ export default function DashboardPage() {
               </svg>
             </button>
             <Link href="/directory" className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-slate-800 to-slate-600 text-lg font-bold text-white shadow-sm">
-                M
-              </div>
+              <Image src="/images/logo.png" alt="MySimsar" width={40} height={40} className="object-contain" />
               <span className="text-xl font-bold text-gray-900">MySimsar</span>
             </Link>
           </div>
@@ -2484,19 +2483,19 @@ export default function DashboardPage() {
                 }`}>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                      <h2 className="text-lg font-semibold text-gray-900">Verification Status</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">Verification Status</h2>
                       <div className="mt-2 flex items-center gap-3">
                         <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium ${
-                          simsarProfile.verificationStatus === "VERIFIED" 
-                            ? "bg-emerald-100 text-emerald-700"
+                      simsarProfile.verificationStatus === "VERIFIED" 
+                        ? "bg-emerald-100 text-emerald-700"
                             : simsarProfile.verificationStatus === "UNDER_REVIEW"
                             ? "bg-blue-100 text-blue-700"
                             : simsarProfile.verificationStatus === "REJECTED"
                             ? "bg-red-100 text-red-700"
                             : simsarProfile.verificationStatus === "NEED_MORE_DOCS"
-                            ? "bg-amber-100 text-amber-700"
-                            : "bg-gray-100 text-gray-700"
-                        }`}>
+                        ? "bg-amber-100 text-amber-700"
+                        : "bg-gray-100 text-gray-700"
+                    }`}>
                           {simsarProfile.verificationStatus === "VERIFIED" && <VerifiedIcon />}
                           {simsarProfile.verificationStatus === "UNDER_REVIEW" && (
                             <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
@@ -2514,8 +2513,8 @@ export default function DashboardPage() {
                           <span className="text-sm text-gray-500">
                             RERA: <span className="font-mono font-medium text-gray-700">{simsarProfile.reraId}</span>
                           </span>
-                        )}
-                      </div>
+                      )}
+                    </div>
                       {simsarProfile.verificationStatus === "VERIFIED" && (
                         <p className="mt-2 text-sm text-emerald-700">
                           Your profile is verified and visible in the public directory.
@@ -2539,8 +2538,8 @@ export default function DashboardPage() {
                       {simsarProfile.verificationStatus === "PENDING" && (
                         <p className="mt-2 text-sm text-gray-600">
                           Complete your profile and submit documents to get verified and appear in the directory.
-                        </p>
-                      )}
+                    </p>
+                  )}
                     </div>
                     {simsarProfile.verificationStatus !== "VERIFIED" && simsarProfile.verificationStatus !== "UNDER_REVIEW" && (
                       <Link
